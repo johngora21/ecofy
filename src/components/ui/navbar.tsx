@@ -12,7 +12,7 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-shamba-green">Shamba Hub</span>
+            <span className="text-2xl font-bold text-shamba-green">Ecofy</span>
           </Link>
           
           {/* Desktop Menu */}

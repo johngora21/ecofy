@@ -7,7 +7,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <Link to="/" className="text-2xl font-bold">Shamba Hub</Link>
+            <Link to="/" className="text-2xl font-bold">Ecofy</Link>
             <p className="mt-4 text-sm leading-6 text-gray-200">
               Empowering smallholder farmers with AI-driven tools for sustainable agriculture and climate resilience.
             </p>
@@ -36,13 +36,13 @@ export function Footer() {
             <ul className="mt-4 space-y-2">
               <li className="flex items-start">
                 <span className="text-gray-200">Email:</span>
-                <a href="mailto:info@shambahub.com" className="ml-2 text-gray-200 hover:text-white">
-                  info@shambahub.com
+                <a href="mailto:info@ecofy.co.tz" className="ml-2 text-gray-200 hover:text-white">
+                  info@ecofy.co.tz
                 </a>
               </li>
               <li className="flex items-start">
                 <span className="text-gray-200">Phone:</span>
-                <span className="ml-2 text-gray-200">+254 700 000000</span>
+                <span className="ml-2 text-gray-200">+255717801745</span>
               </li>
             </ul>
           </div>
@@ -50,7 +50,7 @@ export function Footer() {
         
         <div className="mt-12 pt-8 border-t border-gray-600 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-300">
-            &copy; {new Date().getFullYear()} Shamba Hub. All rights reserved.
+            &copy; {new Date().getFullYear()} Ecofy. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0">
             <ul className="flex space-x-6">

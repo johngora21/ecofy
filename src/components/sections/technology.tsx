@@ -12,12 +12,12 @@ export function TechnologySection() {
   const techAreas = [
     {
       title: "IoT and Sensors",
-      description: "Advanced sensors collect real-time data on soil moisture, temperature, pH levels, and salinity, enabling continuous monitoring for accurate recommendations.",
+      description: "Advanced sensors collect real-time data on soil texture, structure, porosity, drainage, water-holding capacity, pH, organic matter, CEC, salinity, nutrient levels, slope, soil depth, erosion susceptibility, temperature, and moisture. Data is used for continuous monitoring and accurate recommendations.",
       icon: <Wifi className="h-10 w-10 text-shamba-blue" />,
     },
     {
       title: "GPS and Satellite",
-      description: "Generate detailed geospatial farm maps for tailored planning while analyzing climate risks and regional environmental changes through remote sensing.",
+      description: "Generate detailed geospatial farm maps for tailored planning while analyzing climate risks and regional environmental changes through advanced satellite and remote sensing. Soil and environmental data can be acquired via satellite as well.",
       icon: <Globe className="h-10 w-10 text-shamba-blue" />,
     },
     {
@@ -41,7 +41,7 @@ export function TechnologySection() {
           </h2>
           <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
           <p className="max-w-3xl mx-auto text-lg text-gray-700">
-            Shamba Hub integrates cutting-edge technology to provide actionable insights and recommendations for smallholder farmers.
+            Ecofy integrates cutting-edge technology to provide actionable insights and recommendations for smallholder farmers.
           </p>
         </div>
 

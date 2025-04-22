@@ -5,18 +5,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export function FeaturesSection() {
   const features = [
     {
-      title: "Farm Mapping",
+      title: "Comprehensive Farm Mapping",
       description: "Precisely define farm boundaries, assess topography, and evaluate land features using GPS mapping for effective resource planning.",
       icon: <Map className="h-8 w-8 text-shamba-green" />,
     },
     {
       title: "Soil Analysis",
-      description: "Measure key soil parameters including moisture, temperature, pH levels, and more through IoT sensors for tailored recommendations.",
+      description: (
+        <>
+          <span>
+            Measure key soil parameters via IoT sensors or satellite, including:
+          </span>
+          <ul className="list-disc ml-5 mt-2 text-gray-700 text-sm">
+            <li>Texture</li>
+            <li>Structure</li>
+            <li>Porosity</li>
+            <li>Drainage</li>
+            <li>Water-Holding Capacity</li>
+            <li>pH Level</li>
+            <li>Organic Matter Content</li>
+            <li>Cation Exchange Capacity (CEC)</li>
+            <li>Salinity</li>
+            <li>Nutrient Levels (macronutrients)</li>
+            <li>Slope</li>
+            <li>Soil Depth</li>
+            <li>Erosion Susceptibility</li>
+            <li>Temperature</li>
+            <li>Moisture Content</li>
+          </ul>
+          <span className="block mt-2">Tailored recommendations from soil insights support crop selection and optimized irrigation.</span>
+        </>
+      ),
       icon: <Leaf className="h-8 w-8 text-shamba-green" />,
     },
     {
       title: "Real-Time Monitoring",
-      description: "Continuous feedback on soil health, climate conditions, and crop health with satellite data for broader insights.",
+      description: "Continuous feedback on soil health, climate conditions, and crop health with satellite and IoT data for broader insights.",
       icon: <CloudRain className="h-8 w-8 text-shamba-green" />,
     },
     {

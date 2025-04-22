@@ -50,7 +50,7 @@ export function ImpactSection() {
           </h2>
           <div className="w-20 h-1 bg-white mx-auto mt-4 mb-6"></div>
           <p className="max-w-3xl mx-auto text-lg text-gray-100">
-            Shamba Hub is making a measurable difference in sustainable agriculture, climate resilience, and farmer livelihoods.
+            Ecofy is making a measurable difference in sustainable agriculture, climate resilience, and farmer livelihoods.
           </p>
         </div>
 

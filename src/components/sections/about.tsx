@@ -6,7 +6,7 @@ export function AboutSection() {
     <section id="about" className="bg-white py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">About Shamba Hub</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">About Ecofy</h2>
           <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
           <p className="max-w-3xl mx-auto text-lg text-gray-700">
             Our mission is to empower smallholder farmers with precision farming tools for climate-resilient, sustainable, and profitable agriculture.
@@ -35,7 +35,7 @@ export function AboutSection() {
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-shamba-green flex items-center justify-center mr-3 mt-1">
                   <span className="text-white text-sm font-bold">2</span>
                 </div>
-                <p className="text-gray-700">Analyze soil characteristics and topography, offering tailored advice on crops and farming techniques.</p>
+                <p className="text-gray-700">Analyze soil characteristics, including texture, structure, porosity, drainage, water-holding capacity, pH level, organic matter, CEC, salinity, nutrient levels, slope, soil depth, erosion susceptibility, temperature, and moisture content. Data can be collected via advanced IoT sensors or satellite technologies.</p>
               </li>
               <li className="flex">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-shamba-green flex items-center justify-center mr-3 mt-1">
@@ -56,7 +56,6 @@ export function AboutSection() {
                 <p className="text-gray-700">Promote sustainability by optimizing resource usage and minimizing waste.</p>
               </li>
             </ul>
-            
             <Button className="mt-8 bg-shamba-green hover:bg-shamba-green-dark text-white">
               Learn More About Our Mission
             </Button>
