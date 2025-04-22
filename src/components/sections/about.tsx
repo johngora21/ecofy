@@ -36,7 +36,7 @@ export function AboutSection() {
             {subtitle}
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div className="max-w-3xl mx-auto space-y-12">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start">
               <div className="mr-4">{feature.icon}</div>
@@ -46,14 +46,17 @@ export function AboutSection() {
               </div>
             </div>
           ))}
-        </div>
-        <div className="text-center">
-          <h3 className="text-2xl font-bold text-shamba-green-dark mb-4">Our Objectives</h3>
-          <ul className="list-disc list-inside text-lg text-gray-700 max-w-md mx-auto">
-            {objectives.map((objective, index) => (
-              <li key={index} className="mb-2">{objective}</li>
-            ))}
-          </ul>
+          <div className="flex items-start">
+            <div className="mr-4"><Rocket className="h-6 w-6 text-shamba-green" /></div>
+            <div>
+              <h3 className="text-xl font-bold text-shamba-green-dark mb-2">Our Objectives</h3>
+              <ul className="list-disc list-inside text-gray-700">
+                {objectives.map((objective, index) => (
+                  <li key={index} className="mb-2">{objective}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>
