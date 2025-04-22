@@ -16,8 +16,8 @@ export function AboutSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div>
             <img 
-              src="https://images.unsplash.com/photo-1517022812141-23620dba5c23?auto=format&fit=crop&q=80&w=1200" 
-              alt="Sustainable farming" 
+              src="/lovable-uploads/a04bcb02-dc5b-4e9f-ad8d-ae2359b52e14.png" 
+              alt="Farmer in colorful traditional dress smiling" 
               className="rounded-lg shadow-xl"
             />
           </div>

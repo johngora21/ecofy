@@ -73,8 +73,8 @@ export function TechnologySection() {
             <div className="relative">
               <div className="absolute -top-6 -left-6 w-64 h-64 bg-shamba-blue/10 rounded-full"></div>
               <img
-                src="https://images.unsplash.com/photo-1493397212122-2b85dda8106b?auto=format&fit=crop&q=80&w=1200"
-                alt="Agricultural technology"
+                src="/lovable-uploads/1e845b4b-d4ca-423e-92b0-3071fd44cdcf.png"
+                alt="Farmer using technology in the field"
                 className="relative rounded-lg shadow-xl border-4 border-white"
               />
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-shamba-green/10 rounded-full"></div>

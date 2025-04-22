@@ -26,8 +26,8 @@ export function HeroSection() {
             <div className="relative w-full max-w-md">
               <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-xl">
                 <img 
-                  src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&q=80&w=1200"
-                  alt="Farmers using technology in the field"
+                  src="/lovable-uploads/5c3daa85-8908-4499-9f2d-80616cce7587.png"
+                  alt="Agricultural technology icons overlaying a green rice field"
                   className="object-cover w-full h-full"
                 />
               </div>
