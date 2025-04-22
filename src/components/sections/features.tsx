@@ -40,8 +40,7 @@ export function FeaturesSection() {
           </h2>
           <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
           <p className="max-w-3xl mx-auto text-lg text-gray-700">
-            Our Farm Management Module combines cutting-edge technology with practical solutions
-            to address the unique challenges faced by smallholder farmers.
+            Ecofy collects and analyzes agricultural data using AI technology, satellite data, and market intelligence to provide actionable recommendations for every farmer.
           </p>
         </div>
 

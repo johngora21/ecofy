@@ -5,17 +5,17 @@ const previews = [
   {
     name: "Asha from Mbeya",
     text: "Ecofy's tools helped me understand my soil and choose better crops. I've seen my harvests improve each season.",
-    photo: "/lovable-uploads/3d7a769d-a6df-4024-a4d9-9b291724c7fa.png"
+    photo: "/lovable-uploads/ddcfd8ef-7337-4cc5-9606-9076498d5c9e.png"
   },
   {
     name: "John from Morogoro",
     text: "Getting soil data from my phone makes farming smarter. The advice from Ecofy changed how my family farms.",
-    photo: "/lovable-uploads/436bbce1-74f2-40ed-ab14-e97441355a8c.png"
+    photo: "/lovable-uploads/c051de8f-7da4-419c-8ef7-7edcf42ad439.png"
   },
   {
     name: "Mama Rehema from Iringa",
     text: "With Ecofy, I know when and how to water my crops. The weather alerts save my farm every rainy season!",
-    photo: "/lovable-uploads/7b9b1a70-0947-4909-8752-2614cc542da1.png"
+    photo: "/lovable-uploads/3847ff30-2fd2-45e6-ae4f-8ec070e05b2e.png"
   }
 ];
 

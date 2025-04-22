@@ -10,6 +10,7 @@ import { FinancialSection } from "@/components/sections/financial";
 import { TechnologySection } from "@/components/sections/technology";
 import { ImpactSection } from "@/components/sections/impact";
 import { TestimonialsSection } from "@/components/sections/testimonials";
+import { ModulesOverviewSection } from "@/components/sections/modules-overview";
 
 const Index = () => {
   return (
@@ -20,6 +21,8 @@ const Index = () => {
         <AboutSection />
         <TestimonialsSection />
         <FeaturesSection />
+        {/* Modules Overview section added below features, above details for each */}
+        <ModulesOverviewSection />
         <MarketplaceSection />
         <ExpertSupportSection />
         <FinancialSection />
