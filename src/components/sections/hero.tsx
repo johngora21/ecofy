@@ -11,7 +11,7 @@ export function HeroSection() {
               Smart Climate Solutions for Sustainable Agriculture
             </h1>
             <p className="mt-6 text-lg md:text-xl text-gray-700 max-w-lg">
-              Empowering smallholder farmers in Sub-Saharan Africa with AI-driven tools for climate-resilient farming practices.
+              Empowering smallholder farmers in Sub-Saharan Africa with AI-driven tools for climate-resilient and profitable farming practices – proudly by Ecofy.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Button className="bg-shamba-green hover:bg-shamba-green-dark text-white px-8 py-3 rounded-md">
@@ -26,8 +26,8 @@ export function HeroSection() {
             <div className="relative w-full max-w-md">
               <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-xl">
                 <img 
-                  src="/lovable-uploads/5c3daa85-8908-4499-9f2d-80616cce7587.png"
-                  alt="Agricultural technology icons overlaying a green rice field"
+                  src="/lovable-uploads/3d7a769d-a6df-4024-a4d9-9b291724c7fa.png"
+                  alt="Ecofy Smart Agriculture"
                   className="object-cover w-full h-full"
                 />
               </div>
