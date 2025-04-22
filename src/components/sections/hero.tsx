@@ -24,7 +24,7 @@ export function HeroSection() {
           </div>
           <div className="order-1 md:order-2 flex justify-center">
             <div className="relative w-full max-w-md">
-              <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-xl">
+              <div className="w-72 h-72 rounded-full overflow-hidden shadow-xl mx-auto">
                 <img 
                   src="/lovable-uploads/3d7a769d-a6df-4024-a4d9-9b291724c7fa.png"
                   alt="Ecofy Smart Agriculture"
@@ -39,3 +39,4 @@ export function HeroSection() {
     </section>
   );
 }
+
