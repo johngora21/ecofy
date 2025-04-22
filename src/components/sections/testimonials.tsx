@@ -15,7 +15,7 @@ const previews = [
   {
     name: "Mama Rehema from Iringa",
     text: "With Ecofy, I know when and how to water my crops. The weather alerts save my farm every rainy season!",
-    photo: "/lovable-uploads/3847ff30-2fd2-45e6-ae4f-8ec070e05b2e.png"
+    photo: "/lovable-uploads/b0392730-7b65-4981-9d84-acbbf2b85bba.png"
   }
 ];
 
