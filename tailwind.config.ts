@@ -52,6 +52,26 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Custom Shamba Hub colors
+				'shamba': {
+					'green': {
+						DEFAULT: '#2E7D32',
+						light: '#4CAF50',
+						dark: '#1B5E20',
+					},
+					'earth': {
+						DEFAULT: '#795548',
+						light: '#A1887F',
+						dark: '#5D4037',
+					},
+					'blue': {
+						DEFAULT: '#1976D2',
+						light: '#42A5F5',
+						dark: '#0D47A1',
+					},
+					'cream': '#FFF8E1',
+					'sand': '#F5E9BE',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
