@@ -1,4 +1,3 @@
-
 import { Check, Leaf, Map, BarChart, CloudRain } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -11,7 +10,7 @@ export function FeaturesSection() {
     },
     {
       title: "Soil Analysis",
-      description: "Measure key soil parameters via IoT sensors or satellite. Tailored recommendations from soil insights support crop selection and optimized irrigation.",
+      description: "Measure key soil parameters. Tailored recommendations from these soil insights support crop selection and optimized irrigation.",
       icon: <Leaf className="h-8 w-8 text-shamba-green" />,
     },
     {
@@ -40,10 +39,9 @@ export function FeaturesSection() {
           </h2>
           <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
           <p className="max-w-3xl mx-auto text-lg text-gray-700">
-            Ecofy collects and analyzes agricultural data using AI technology, satellite data, and market intelligence to provide actionable recommendations for every farmer.
+            Ecofy collects and analyzes data via AI technology, satellite, and market intelligence, providing actionable recommendations and informed decisions for every farmer.
           </p>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <Card key={index} className="border-none shadow-md hover:shadow-lg transition-shadow">

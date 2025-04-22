@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 
 export function AboutSection() {
@@ -53,10 +52,8 @@ export function AboutSection() {
                   <span className="text-white text-sm font-bold">2</span>
                 </div>
                 <p className="text-gray-700">
-                  Analyze comprehensive soil parameters:
+                  Analyze comprehensive soil parameters.
                   <span className="font-semibold"> Texture, Structure, Porosity, Drainage, Water-Holding Capacity, pH Level, Organic Matter Content, Cation Exchange Capacity (CEC), Salinity, Nutrient Levels (macronutrients), Slope, Soil Depth, Erosion Susceptibility, Temperature, Moisture Content.</span>
-                  <br />
-                  <span className="text-sm text-gray-500">Data collection via advanced IoT sensors or satellite technologies.</span>
                 </p>
               </li>
               <li className="flex">
