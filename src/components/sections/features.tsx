@@ -11,31 +11,7 @@ export function FeaturesSection() {
     },
     {
       title: "Soil Analysis",
-      description: (
-        <>
-          <span>
-            Measure key soil parameters via IoT sensors or satellite, including:
-          </span>
-          <ul className="list-disc ml-5 mt-2 text-gray-700 text-sm">
-            <li>Texture</li>
-            <li>Structure</li>
-            <li>Porosity</li>
-            <li>Drainage</li>
-            <li>Water-Holding Capacity</li>
-            <li>pH Level</li>
-            <li>Organic Matter Content</li>
-            <li>Cation Exchange Capacity (CEC)</li>
-            <li>Salinity</li>
-            <li>Nutrient Levels (macronutrients)</li>
-            <li>Slope</li>
-            <li>Soil Depth</li>
-            <li>Erosion Susceptibility</li>
-            <li>Temperature</li>
-            <li>Moisture Content</li>
-          </ul>
-          <span className="block mt-2">Tailored recommendations from soil insights support crop selection and optimized irrigation.</span>
-        </>
-      ),
+      description: "Measure key soil parameters via IoT sensors or satellite. Tailored recommendations from soil insights support crop selection and optimized irrigation.",
       icon: <Leaf className="h-8 w-8 text-shamba-green" />,
     },
     {
@@ -60,7 +36,7 @@ export function FeaturesSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">
-            Core Functionalities
+            Farm Management Module
           </h2>
           <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
           <p className="max-w-3xl mx-auto text-lg text-gray-700">

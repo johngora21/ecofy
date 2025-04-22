@@ -63,6 +63,9 @@ function NavLinks({ mobile = false }: { mobile?: boolean }) {
     { name: "Home", href: "/" },
     { name: "About", href: "#about" },
     { name: "Features", href: "#features" },
+    { name: "Marketplace", href: "#marketplace" },
+    { name: "Expert Support", href: "#expert-support" },
+    { name: "Financial", href: "#financial" },
     { name: "Technology", href: "#technology" },
     { name: "Impact", href: "#impact" },
   ];
