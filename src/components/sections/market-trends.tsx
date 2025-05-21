@@ -1,20 +1,19 @@
-
 import { ChartBar, ChartLine, TrendingUp } from "lucide-react";
 
 export function MarketTrendsSection() {
   return (
-    <section id="market-trends" className="bg-shamba-green/10 py-16 md:py-24">
+    <section id="market-trends" className="bg-shamba-cream py-8 md:py-16">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">Market Price Trends & Decision Impact</h2>
-          <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
-          <p className="max-w-2xl mx-auto text-lg text-gray-700">
-            Understanding market price dynamics is vital for every farmer and agribusiness in Sub-Saharan Africa.
-            Ecofy provides deep insights into <b>historical</b>, <b>real-time</b>, and <b>future</b> market price trends,
-            empowering smarter, data-driven decisions for when to plant, harvest, store, and sell.
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-bold text-shamba-green-dark">
+            Market Intelligence Module
+          </h2>
+          <div className="w-20 h-1 bg-shamba-green mx-auto mt-3 md:mt-4 mb-4 md:mb-6"></div>
+          <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-700">
+            Make data-driven decisions with real-time market insights, price trends, and demand forecasts.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10 mb-6 md:mb-8">
           {/* Historical Market Trends */}
           <div className="bg-white rounded-lg p-8 shadow hover:shadow-lg flex flex-col items-center text-center">
             <ChartBar className="text-shamba-green w-10 h-10 mb-3"/>
@@ -55,7 +54,7 @@ export function MarketTrendsSection() {
             <ChartLine className="text-shamba-green w-10 h-10 mb-3"/>
             <h3 className="text-xl font-bold text-shamba-green-dark mb-2">Future Market Predictions</h3>
             <p className="mb-4 text-gray-700">
-              AI-powered models analyze historical and real-time data to forecast coming price trends — allowing farmers to plan storage, sales, and next season’s crops with confidence.
+              AI-powered models analyze historical and real-time data to forecast coming price trends — allowing farmers to plan storage, sales, and next season's crops with confidence.
             </p>
             <img
               src="/lovable-uploads/c035ab19-8f98-4c13-b68c-cd35096db0cc.png"

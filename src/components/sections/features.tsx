@@ -31,29 +31,60 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="bg-shamba-cream py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">
-            Farm Management Module
-          </h2>
-          <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
-          <p className="max-w-3xl mx-auto text-lg text-gray-700">
-            Ecofy collects and analyzes data via AI technology, satellite, and market intelligence, providing actionable recommendations and informed decisions for every farmer.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <Card key={index} className="border-none shadow-md hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="mb-4">{feature.icon}</div>
-                <CardTitle className="text-xl text-shamba-green-dark">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+    <section id="features" className="relative py-24 md:py-32 bg-gradient-to-b from-shamba-sand to-white overflow-hidden">
+      {/* Modern decorative elements */}
+      <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-shamba-green/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-shamba-blue/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+      
+      <div className="container mx-auto px-4 relative">
+        <div className="grid grid-cols-12 gap-8 items-start">
+          {/* Left content - spans 4 columns on large screens */}
+          <div className="col-span-12 lg:col-span-4 lg:sticky lg:top-24">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 bg-shamba-green/10 text-shamba-green text-sm font-medium">
+                <span className="w-2 h-2 rounded-full bg-shamba-green animate-pulse"></span>
+                Farm Management
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+                Smart Solutions for{" "}
+                <span className="relative inline-block">
+                  <span className="relative z-10 text-shamba-green">Modern Farming</span>
+                  <span className="absolute bottom-2 left-0 w-full h-3 bg-shamba-green/20 -rotate-1"></span>
+                </span>
+              </h2>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                Ecofy collects and analyzes data via AI technology, satellite, and market intelligence, providing actionable recommendations and informed decisions for every farmer.
+              </p>
+            </div>
+          </div>
+          
+          {/* Right content - spans 8 columns on large screens */}
+          <div className="col-span-12 lg:col-span-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {features.map((feature, index) => (
+                <Card 
+                  key={index} 
+                  className="group relative overflow-hidden border-none bg-white/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-shamba-green/5 to-shamba-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <CardHeader className="pb-2">
+                    <div className="mb-6 p-3 rounded-xl bg-shamba-green/10 w-fit group-hover:scale-110 transition-transform duration-500">
+                      {feature.icon}
+                    </div>
+                    <CardTitle className="text-2xl font-bold text-gray-900 group-hover:text-shamba-green transition-colors duration-300">
+                      {feature.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

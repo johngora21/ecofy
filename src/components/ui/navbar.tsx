@@ -1,88 +1,132 @@
-
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const navigation = [
+  { name: "Home", href: "/" },
+  { name: "About", href: "/about" },
+  { name: "Features", href: "/features" },
+  { name: "Marketplace", href: "/marketplace" },
+  { name: "Expert Support", href: "/expert-support" },
+  { name: "Financial", href: "/financial" },
+  { name: "Technology", href: "/technology" },
+  { name: "Impact", href: "/impact" },
+  { 
+    name: "EcofyApp", 
+    href: "https://ecofyapp.netlify.app",
+    external: true 
+  },
+];
 
 export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location]);
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          <Link to="/" className="flex items-center">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold text-shamba-green">Ecofy</span>
           </Link>
-          
-          {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-8">
-            <NavLinks />
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navigation.map((item) => (
+              item.external ? (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-gray-600 hover:text-shamba-green transition-colors flex items-center gap-1"
+                >
+                  {item.name}
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-shamba-green",
+                    location.pathname === item.href
+                      ? "text-shamba-green"
+                      : "text-gray-600"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              )
+            ))}
+            <Button className="bg-shamba-green hover:bg-shamba-green-dark text-white">
+              Get Started
+            </Button>
           </div>
-          
-          <div className="hidden md:block">
-            <Button className="bg-shamba-green hover:bg-shamba-green-dark">Contact Us</Button>
-          </div>
-          
-          {/* Mobile Menu Button */}
+
+          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              type="button"
-              className="text-gray-500 hover:text-gray-700 focus:outline-none"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-600 hover:text-gray-900"
             >
-              {isMenuOpen ? (
-                <X size={24} aria-hidden="true" />
+              {isOpen ? (
+                <X className="h-6 w-6" />
               ) : (
-                <Menu size={24} aria-hidden="true" />
+                <Menu className="h-6 w-6" />
               )}
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Mobile Menu */}
-      {isMenuOpen && (
+
+      {/* Mobile menu */}
+      {isOpen && (
         <div className="md:hidden bg-white py-2">
-          <div className="container mx-auto px-4 flex flex-col space-y-4">
+          <div className="container mx-auto px-4">
             <div className="flex flex-col space-y-2">
-              <NavLinks mobile />
+              {navigation.map((item) => (
+                item.external ? (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-base font-medium py-2 text-gray-600 hover:text-shamba-green transition-colors flex items-center gap-1"
+                  >
+                    {item.name}
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "text-base font-medium py-2 transition-colors",
+                      location.pathname === item.href
+                        ? "text-shamba-green"
+                        : "text-gray-600 hover:text-shamba-green"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                )
+              ))}
+              <Button className="bg-shamba-green hover:bg-shamba-green-dark text-white mt-4">
+                Get Started
+              </Button>
             </div>
-            <Button className="bg-shamba-green hover:bg-shamba-green-dark w-full">
-              Contact Us
-            </Button>
           </div>
         </div>
       )}
     </nav>
-  );
-}
-
-function NavLinks({ mobile = false }: { mobile?: boolean }) {
-  const navItems = [
-    { name: "Home", href: "/" },
-    { name: "About", href: "#about" },
-    { name: "Features", href: "#features" },
-    { name: "Marketplace", href: "#marketplace" },
-    { name: "Expert Support", href: "#expert-support" },
-    { name: "Financial", href: "#financial" },
-    { name: "Technology", href: "#technology" },
-    { name: "Impact", href: "#impact" },
-  ];
-
-  return (
-    <>
-      {navItems.map((item) => (
-        <a
-          key={item.name}
-          href={item.href}
-          className={`text-gray-700 hover:text-shamba-green font-medium ${
-            mobile ? "block py-2" : ""
-          }`}
-        >
-          {item.name}
-        </a>
-      ))}
-    </>
   );
 }

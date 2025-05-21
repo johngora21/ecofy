@@ -1,4 +1,3 @@
-
 import { MessageSquare, BookOpen, Calendar, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -27,19 +26,19 @@ export function ExpertSupportSection() {
   ];
 
   return (
-    <section id="expert-support" className="bg-shamba-green/10 py-16 md:py-24">
+    <section id="expert-support" className="bg-shamba-green/10 py-8 md:py-16">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-bold text-shamba-green-dark">
             Expert Support Module
           </h2>
-          <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
-          <p className="max-w-3xl mx-auto text-lg text-gray-700">
+          <div className="w-20 h-1 bg-shamba-green mx-auto mt-3 md:mt-4 mb-4 md:mb-6"></div>
+          <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-700">
             Access expert knowledge, community discussions, and specialized agricultural training to improve farming practices.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {features.map((feature, index) => (
             <Card key={index} className="border-none shadow-md hover:shadow-lg transition-shadow">
               <CardHeader className="pb-2">

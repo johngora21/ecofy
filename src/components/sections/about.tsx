@@ -25,18 +25,18 @@ export function AboutSection() {
   ];
 
   return (
-    <section id="about" className="bg-shamba-sand py-16 md:py-24">
+    <section id="about" className="bg-shamba-sand py-8 md:py-16">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-shamba-green-dark">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-bold text-shamba-green-dark">
             {title}
           </h2>
-          <div className="w-20 h-1 bg-shamba-green mx-auto mt-4 mb-6"></div>
-          <p className="max-w-3xl mx-auto text-lg text-gray-700">
+          <div className="w-20 h-1 bg-shamba-green mx-auto mt-3 md:mt-4 mb-4 md:mb-6"></div>
+          <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-700">
             {subtitle}
           </p>
         </div>
-        <div className="max-w-3xl mx-auto space-y-12">
+        <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start">
               <div className="mr-4">{feature.icon}</div>

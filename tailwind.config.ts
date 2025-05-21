@@ -55,22 +55,22 @@ export default {
 				// Custom Shamba Hub colors
 				'shamba': {
 					'green': {
-						DEFAULT: '#2E7D32',
-						light: '#4CAF50',
-						dark: '#1B5E20',
+						DEFAULT: '#10B981',  // Modern emerald
+						light: '#34D399',    // Bright mint
+						dark: '#059669',     // Deep emerald
 					},
 					'earth': {
-						DEFAULT: '#795548',
-						light: '#A1887F',
-						dark: '#5D4037',
+						DEFAULT: '#6366F1',  // Modern indigo
+						light: '#818CF8',    // Light indigo
+						dark: '#4F46E5',     // Deep indigo
 					},
 					'blue': {
-						DEFAULT: '#1976D2',
-						light: '#42A5F5',
-						dark: '#0D47A1',
+						DEFAULT: '#3B82F6',  // Modern blue
+						light: '#60A5FA',    // Light blue
+						dark: '#2563EB',     // Deep blue
 					},
-					'cream': '#FFF8E1',
-					'sand': '#F5E9BE',
+					'cream': '#F8FAFC',     // Modern light gray
+					'sand': '#F1F5F9',      // Modern slate
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

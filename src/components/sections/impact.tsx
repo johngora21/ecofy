@@ -41,19 +41,19 @@ export function ImpactSection() {
   ];
 
   return (
-    <section id="impact" className="bg-shamba-earth py-16 md:py-24 text-white">
+    <section id="impact" className="bg-shamba-earth py-8 md:py-16 text-white">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl md:text-4xl font-bold">
             Our Impact
           </h2>
-          <div className="w-20 h-1 bg-white mx-auto mt-4 mb-6"></div>
-          <p className="max-w-3xl mx-auto text-lg text-gray-100">
+          <div className="w-20 h-1 bg-white mx-auto mt-3 md:mt-4 mb-4 md:mb-6"></div>
+          <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-100">
             Ecofy is making a measurable difference in sustainable agriculture, climate resilience, and farmer livelihoods.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {impactMetrics.map((impact, index) => (
             <div 
               key={index}

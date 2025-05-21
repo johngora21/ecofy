@@ -1,21 +1,20 @@
-
 import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
     <footer className="bg-shamba-green-dark text-white">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           <div>
-            <Link to="/" className="text-2xl font-bold">Ecofy</Link>
-            <p className="mt-4 text-sm leading-6 text-gray-200">
+            <Link to="/" className="text-xl md:text-2xl font-bold">Ecofy</Link>
+            <p className="mt-3 md:mt-4 text-sm leading-6 text-gray-200">
               Empowering smallholder farmers with AI-driven tools for sustainable agriculture and climate resilience.
             </p>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold">Quick Links</h3>
-            <ul className="mt-4 space-y-2">
+            <h3 className="text-base md:text-lg font-semibold">Quick Links</h3>
+            <ul className="mt-3 md:mt-4 space-y-1 md:space-y-2">
               <li>
                 <a href="#about" className="text-gray-200 hover:text-white">About Us</a>
               </li>
