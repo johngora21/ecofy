@@ -80,10 +80,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Quick Stats
-            _buildQuickStats(),
-            const SizedBox(height: 24),
-            
             // Report Generator
             _buildReportGenerator(),
             const SizedBox(height: 24),
@@ -96,63 +92,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             _buildSoilDataSection(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuickStats() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.shadowLight,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Quick Overview', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard('Total Reports', '24', Icons.assessment, AppTheme.primaryGreen),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard('Active Farms', '3', Icons.agriculture, AppTheme.secondaryBlue),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard('Pending', '2', Icons.schedule, Colors.orange),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(value, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: color)),
-          Text(title, style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textSecondary)),
-        ],
       ),
     );
   }

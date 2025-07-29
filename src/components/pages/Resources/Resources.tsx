@@ -6,25 +6,25 @@ import BusinessPlanSection from './BusinessPlanSection';
 import BooksSection from './BooksSection';
 import { resourcesTabs, productOptions, locationOptions, eventTypeOptions } from '../../../data/uiData';
 
-type ResourceTab = 'tutorials' | 'events' | 'business-plan' | 'books';
+type ResourceTab = 'events' | 'tutorials' | 'books' | 'business-plan';
 
 const Resources: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ResourceTab>('tutorials');
+  const [activeTab, setActiveTab] = useState<ResourceTab>('events');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('All Products');
 
   const renderActiveSection = () => {
     switch (activeTab) {
-      case 'tutorials':
-        return <TutorialsSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
       case 'events':
         return <EventsSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
-      case 'business-plan':
-        return <BusinessPlanSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
+      case 'tutorials':
+        return <TutorialsSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
       case 'books':
         return <BooksSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
+      case 'business-plan':
+        return <BusinessPlanSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
       default:
-        return <TutorialsSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
+        return <EventsSection searchTerm={searchTerm} selectedProduct={selectedProduct} />;
     }
   };
 

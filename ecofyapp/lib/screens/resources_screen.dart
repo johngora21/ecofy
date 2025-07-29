@@ -16,9 +16,9 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   int selectedTabIndex = 0;
 
   final List<Map<String, dynamic>> tabs = [
-    {'title': 'Books', 'icon': Icons.book},
-    {'title': 'Tutorials', 'icon': Icons.school},
     {'title': 'Events', 'icon': Icons.event},
+    {'title': 'Tutorials', 'icon': Icons.school},
+    {'title': 'Books', 'icon': Icons.book},
     {'title': 'Business Plans', 'icon': Icons.business},
   ];
 
@@ -96,15 +96,15 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
   Widget _buildTabContent() {
     switch (selectedTabIndex) {
       case 0:
-        return const BooksScreen();
+        return const EventsScreen();
       case 1:
         return const TutorialsScreen();
       case 2:
-        return const EventsScreen();
+        return const BooksScreen();
       case 3:
         return const BusinessPlansScreen();
       default:
-        return const BooksScreen();
+        return const EventsScreen();
     }
   }
 
