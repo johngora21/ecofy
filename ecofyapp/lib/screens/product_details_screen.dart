@@ -31,32 +31,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              // Add to favorites functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Added to favorites'),
-                  backgroundColor: AppTheme.primaryGreen,
-                ),
-              );
-            },
-            icon: const Icon(Icons.favorite_border),
-          ),
-          IconButton(
-            onPressed: () {
-              // Share functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Sharing product...'),
-                  backgroundColor: AppTheme.primaryGreen,
-                ),
-              );
-            },
-            icon: const Icon(Icons.share),
-          ),
-        ],
+        actions: [],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -114,7 +89,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ),
                   
                   // Discount badge
-                  if (widget.product['discount'] > 0)
+                  if ((widget.product['discount'] ?? 0) > 0)
                     Positioned(
                       top: 20,
                       left: 20,
@@ -155,8 +130,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          widget.product['name'],
+                        child:                         Text(
+                          widget.product['name'] ?? 'Unknown Product',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -167,21 +142,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         children: [
                           Icon(Icons.star, color: Colors.amber[600], size: 20),
                           const SizedBox(width: 4),
-                          Text(
-                            '${widget.product['rating']}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                                                  Text(
+                          '${widget.product['rating'] ?? 0}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
+                        ),
                           const SizedBox(width: 4),
-                          Text(
-                            '(${widget.product['reviews']} reviews)',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
+                                                  Text(
+                          '(${widget.product['reviews'] ?? 0} reviews)',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
                           ),
+                        ),
                         ],
                       ),
                     ],
@@ -191,18 +166,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   // Price Section
                   Row(
                     children: [
-                      Text(
-                        '${widget.product['price']} TZS',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryGreen,
+                                              Text(
+                          '${widget.product['price'] ?? 0} TZS',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryGreen,
+                          ),
                         ),
-                      ),
-                      if (widget.product['originalPrice'] > widget.product['price']) ...[
+                      if ((widget.product['originalPrice'] ?? 0) > (widget.product['price'] ?? 0)) ...[
                         const SizedBox(width: 12),
                         Text(
-                          '${widget.product['originalPrice']} TZS',
+                          '${widget.product['originalPrice'] ?? 0} TZS',
                           style: TextStyle(
                             fontSize: 18,
                             decoration: TextDecoration.lineThrough,
@@ -213,23 +188,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Per ${_extractUnit(widget.product['quantity'])}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
+                                          Text(
+                          'Per ${_extractUnit(widget.product['quantity'] ?? 'unit')}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                   const SizedBox(height: 24),
                   
                   // Product Information
-                  _buildInfoSection('Description', widget.product['description']),
+                  _buildInfoSection('Description', widget.product['description'] ?? 'No description available'),
                   const SizedBox(height: 20),
                   
-                  _buildInfoRow('Seller', widget.product['seller']),
-                  _buildInfoRow('Location', '${widget.product['district']}, ${widget.product['region']}'),
-                  _buildInfoRow('Quantity Available', widget.product['quantity']),
-                  _buildInfoRow('Grade', widget.product['grade']),
+                  _buildInfoRow('Seller', widget.product['seller'] ?? 'Unknown Seller'),
+                  _buildInfoRow('Location', '${widget.product['district'] ?? 'Unknown'}, ${widget.product['region'] ?? 'Unknown'}'),
+                  _buildInfoRow('Quantity Available', widget.product['quantity'] ?? 'Unknown'),
+                  _buildInfoRow('Grade', widget.product['grade'] ?? 'Unknown'),
                   const SizedBox(height: 20),
                   
                   // Quantity Selector
@@ -241,7 +216,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     children: [
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: widget.product['inStock'] ? () => _addToCart() : null,
+                          onPressed: (widget.product['inStock'] ?? false) ? () => _addToCart() : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primaryGreen,
                             foregroundColor: Colors.white,
@@ -409,7 +384,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  String _extractUnit(String quantity) {
+  String _extractUnit(String? quantity) {
+    if (quantity == null) return 'unit';
     if (quantity.contains('kg')) return 'kg';
     if (quantity.contains('g')) return 'g';
     if (quantity.contains('ton')) return 'ton';
@@ -422,7 +398,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void _addToCart() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${widget.product['name']} added to cart'),
+        content: Text('${widget.product['name'] ?? 'Product'} added to cart'),
         backgroundColor: AppTheme.primaryGreen,
         action: SnackBarAction(
           label: 'View Cart',
@@ -438,7 +414,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void _contactSeller() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Contacting ${widget.product['seller']}...'),
+        content: Text('Contacting ${widget.product['seller'] ?? 'Seller'}...'),
         backgroundColor: Colors.blue[600],
       ),
     );

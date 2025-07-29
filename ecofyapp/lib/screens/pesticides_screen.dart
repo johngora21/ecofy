@@ -1,184 +1,29 @@
 import 'package:flutter/material.dart';
-import '../data/tanzania_crops.dart';
-import '../data/tanzania_regions.dart';
 import '../core/theme/app_theme.dart';
-import 'product_details_screen.dart'; // Added import for ProductDetailsScreen
+import '../data/tanzania_regions.dart';
+import 'product_details_screen.dart';
 
-class CropsPage extends StatefulWidget {
-  final String selectedCrop;
-
-  const CropsPage({Key? key, required this.selectedCrop}) : super(key: key);
+class PesticidesScreen extends StatefulWidget {
+  const PesticidesScreen({super.key});
 
   @override
-  State<CropsPage> createState() => _CropsPageState();
+  State<PesticidesScreen> createState() => _PesticidesScreenState();
 }
 
-class _CropsPageState extends State<CropsPage> {
-  String? _selectedCropName;
-  String? _selectedGrade;
+class _PesticidesScreenState extends State<PesticidesScreen> {
+  String? _selectedPesticideType;
+  String? _selectedLocation;
   String? _selectedRegion;
-  String? _selectedDistrict;
   String _searchQuery = '';
   
-  List<String> _cropNames = TanzaniaCrops.getCropNames();
-  List<String> _regions = TanzaniaRegions.getRegionNames();
+  final List<String> _pesticideTypes = ['Insecticides', 'Herbicides', 'Fungicides', 'Rodenticides', 'Molluscicides', 'Nematicides'];
+  final List<String> _regions = TanzaniaRegions.getRegionNames();
   List<String> _districts = [];
-  List<String> _grades = ['Grade A', 'Grade B', 'Grade C', 'Premium', 'Standard'];
-
-  // Mock product data with better structure
-  List<Map<String, dynamic>> _products = [
-    {
-      'id': '1',
-      'name': 'Fresh Tomatoes',
-      'grade': 'Grade A',
-      'region': 'Arusha',
-      'district': 'Arusha City',
-      'price': 2500,
-      'originalPrice': 3000,
-      'quantity': '50kg',
-      'image': '🍅',
-      'description': 'Fresh red tomatoes, perfect for cooking and salads',
-      'seller': 'Mama Farm',
-      'rating': 4.5,
-      'reviews': 23,
-      'inStock': true,
-      'isNew': true,
-      'discount': 17,
-    },
-    {
-      'id': '2',
-      'name': 'Premium Maize Grains',
-      'grade': 'Premium',
-      'region': 'Dodoma',
-      'district': 'Dodoma City',
-      'price': 1800,
-      'originalPrice': 1800,
-      'quantity': '100kg',
-      'image': '🌽',
-      'description': 'High-quality maize grains, suitable for various uses',
-      'seller': 'Dodoma Farmers Coop',
-      'rating': 4.8,
-      'reviews': 45,
-      'inStock': true,
-      'isNew': false,
-      'discount': 0,
-    },
-    {
-      'id': '3',
-      'name': 'Irish Potatoes',
-      'grade': 'Grade B',
-      'region': 'Kilimanjaro',
-      'district': 'Moshi',
-      'price': 3200,
-      'originalPrice': 3800,
-      'quantity': '75kg',
-      'image': '🥔',
-      'description': 'Fresh potatoes from the slopes of Kilimanjaro',
-      'seller': 'Kilimanjaro Fresh',
-      'rating': 4.2,
-      'reviews': 18,
-      'inStock': true,
-      'isNew': false,
-      'discount': 16,
-    },
-    {
-      'id': '4',
-      'name': 'Sweet Bananas',
-      'grade': 'Grade A',
-      'region': 'Kagera',
-      'district': 'Bukoba',
-      'price': 1500,
-      'originalPrice': 1500,
-      'quantity': '60kg',
-      'image': '🍌',
-      'description': 'Sweet bananas from the lake region',
-      'seller': 'Lake Region Fruits',
-      'rating': 4.6,
-      'reviews': 32,
-      'inStock': false,
-      'isNew': true,
-      'discount': 0,
-    },
-    {
-      'id': '5',
-      'name': 'Fresh Cassava Roots',
-      'grade': 'Standard',
-      'region': 'Mwanza',
-      'district': 'Mwanza City',
-      'price': 1200,
-      'originalPrice': 1500,
-      'quantity': '80kg',
-      'image': '🥔',
-      'description': 'Fresh cassava roots, perfect for traditional dishes',
-      'seller': 'Mwanza Roots',
-      'rating': 4.0,
-      'reviews': 15,
-      'inStock': true,
-      'isNew': false,
-      'discount': 20,
-    },
-    {
-      'id': '6',
-      'name': 'Organic Sweety Potato',
-      'grade': 'Premium',
-      'region': 'Morogoro',
-      'district': 'Morogoro Urban',
-      'price': 2800,
-      'originalPrice': 2800,
-      'quantity': '65kg',
-      'image': '🍠',
-      'description': 'Organic sweet potatoes, rich in nutrients',
-      'seller': 'Organic Morogoro',
-      'rating': 4.7,
-      'reviews': 28,
-      'inStock': true,
-      'isNew': true,
-      'discount': 0,
-    },
-  ];
 
   @override
   void initState() {
     super.initState();
-    _selectedCropName = widget.selectedCrop.isNotEmpty ? widget.selectedCrop : null;
-  }
-
-  void _onRegionChanged(String? region) {
-    setState(() {
-      _selectedRegion = region;
-      _selectedDistrict = null;
-      if (region != null) {
-        _districts = TanzaniaRegions.getDistrictNames(region);
-      } else {
-        _districts = [];
-      }
-    });
-  }
-
-  List<Map<String, dynamic>> get _filteredProducts {
-    return _products.where((product) {
-      bool matchesSearch = _searchQuery.isEmpty || 
-          product['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
-      bool matchesCrop = _selectedCropName == null || 
-          product['name'].toString().toLowerCase().contains(_selectedCropName!.toLowerCase());
-      bool matchesGrade = _selectedGrade == null || 
-          product['grade'] == _selectedGrade;
-      bool matchesRegion = _selectedRegion == null || 
-          product['region'] == _selectedRegion;
-      bool matchesDistrict = _selectedDistrict == null || 
-          product['district'] == _selectedDistrict;
-      
-      return matchesSearch && matchesCrop && matchesGrade && matchesRegion && matchesDistrict;
-    }).toList();
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _selectedCropName = null;
-      _selectedRegion = null;
-      _selectedDistrict = null;
-      _districts = [];
-    });
+    _districts = TanzaniaRegions.getAllDistrictNames();
   }
 
   @override
@@ -202,7 +47,7 @@ class _CropsPageState extends State<CropsPage> {
                     ),
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: 'Search crops...',
+                        hintText: 'Search pesticides...',
                         prefixIcon: const Icon(Icons.search, color: Colors.grey),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -301,7 +146,7 @@ class _CropsPageState extends State<CropsPage> {
                       option,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: Colors.black87,
                       ),
                     ),
                   );
@@ -316,7 +161,130 @@ class _CropsPageState extends State<CropsPage> {
   }
 
   Widget _buildProductGrid() {
-    final filteredData = _filteredProducts;
+    List<Map<String, dynamic>> pesticidesData = [
+      {
+        'id': '1',
+        'name': 'Insecticide Spray',
+        'grade': 'Grade A',
+        'region': 'Arusha',
+        'district': 'Arusha City',
+        'price': 45000,
+        'originalPrice': 50000,
+        'quantity': '5L',
+        'image': '🦗',
+        'description': 'Effective insecticide for crop protection',
+        'seller': 'Arusha Agro Chem',
+        'rating': 4.8,
+        'reviews': 67,
+        'inStock': true,
+        'isNew': true,
+        'discount': 10,
+      },
+      {
+        'id': '2',
+        'name': 'Fungicide Powder',
+        'grade': 'Premium',
+        'region': 'Dar es Salaam',
+        'district': 'Ilala',
+        'price': 35000,
+        'originalPrice': 35000,
+        'quantity': '1kg',
+        'image': '🍄',
+        'description': 'Premium fungicide for disease control',
+        'seller': 'Dar Pest Control',
+        'rating': 4.7,
+        'reviews': 45,
+        'inStock': true,
+        'isNew': false,
+        'discount': 0,
+      },
+      {
+        'id': '3',
+        'name': 'Herbicide Liquid',
+        'grade': 'Grade B',
+        'region': 'Morogoro',
+        'district': 'Morogoro Urban',
+        'price': 28000,
+        'originalPrice': 32000,
+        'quantity': '2L',
+        'image': '🌿',
+        'description': 'Selective herbicide for weed control',
+        'seller': 'Morogoro Agro',
+        'rating': 4.5,
+        'reviews': 38,
+        'inStock': true,
+        'isNew': false,
+        'discount': 13,
+      },
+      {
+        'id': '4',
+        'name': 'Biological Control',
+        'grade': 'Grade A',
+        'region': 'Kilimanjaro',
+        'district': 'Moshi',
+        'price': 55000,
+        'originalPrice': 55000,
+        'quantity': '1L',
+        'image': '🦋',
+        'description': 'Natural biological pest control solution',
+        'seller': 'Kilimanjaro Bio',
+        'rating': 4.6,
+        'reviews': 52,
+        'inStock': false,
+        'isNew': true,
+        'discount': 0,
+      },
+      {
+        'id': '5',
+        'name': 'Rodenticide Bait',
+        'grade': 'Standard',
+        'region': 'Dodoma',
+        'district': 'Dodoma City',
+        'price': 15000,
+        'originalPrice': 18000,
+        'quantity': '500g',
+        'image': '🐀',
+        'description': 'Effective rodent control bait',
+        'seller': 'Dodoma Pest Co.',
+        'rating': 4.3,
+        'reviews': 24,
+        'inStock': true,
+        'isNew': false,
+        'discount': 17,
+      },
+      {
+        'id': '6',
+        'name': 'Organic Pesticide',
+        'grade': 'Premium',
+        'region': 'Mwanza',
+        'district': 'Mwanza City',
+        'price': 42000,
+        'originalPrice': 42000,
+        'quantity': '1L',
+        'image': '🌱',
+        'description': 'Organic pesticide for safe crop protection',
+        'seller': 'Mwanza Organic',
+        'rating': 4.9,
+        'reviews': 41,
+        'inStock': true,
+        'isNew': true,
+        'discount': 0,
+      },
+    ];
+
+        // Filter the data based on selected filters
+    List<Map<String, dynamic>> filteredData = pesticidesData.where((product) {
+      bool matchesSearch = _searchQuery.isEmpty || 
+          product['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+      bool matchesType = _selectedPesticideType == null || 
+          product['name'].toString().toLowerCase().contains(_selectedPesticideType!.toLowerCase());
+      bool matchesRegion = _selectedRegion == null || 
+          product['region'] == _selectedRegion;
+      bool matchesDistrict = _selectedLocation == null || 
+          product['district'] == _selectedLocation;
+
+      return matchesSearch && matchesType && matchesRegion && matchesDistrict;
+    }).toList();
 
     if (filteredData.isEmpty) {
       return _buildEmptyState();
@@ -333,6 +301,38 @@ class _CropsPageState extends State<CropsPage> {
       itemBuilder: (context, index) {
         return _buildModernProductCard(filteredData[index]);
       },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No pesticides found',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try adjusting your filters',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -384,33 +384,7 @@ class _CropsPageState extends State<CropsPage> {
                   ),
                 ),
                 
-                // Grade badge
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryGreen.withOpacity(0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      product['grade'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
+
               ],
             ),
             
@@ -498,9 +472,10 @@ class _CropsPageState extends State<CropsPage> {
   }
 
   String _extractUnit(String quantity) {
-    if (quantity.contains('piece')) return 'piece';
+    if (quantity.contains('L')) return 'L';
     if (quantity.contains('kg')) return 'kg';
     if (quantity.contains('g')) return 'g';
+    if (quantity.contains('piece')) return 'piece';
     if (quantity.contains('ton')) return 'ton';
     if (quantity.contains('lb')) return 'lb';
     if (quantity.contains('dozen')) return 'dozen';
@@ -528,63 +503,6 @@ class _CropsPageState extends State<CropsPage> {
       context,
       MaterialPageRoute(
         builder: (context) => ProductDetailsScreen(product: product),
-      ),
-    );
-  }
-
-  Color _getGradeColor(String grade) {
-    switch (grade) {
-      case 'Premium':
-        return Colors.purple;
-      case 'Grade A':
-        return Colors.green;
-      case 'Grade B':
-        return Colors.orange;
-      case 'Grade C':
-        return Colors.red;
-      default:
-        return Colors.blue;
-    }
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No products found',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try adjusting your filters',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _contactSeller(Map<String, dynamic> product) {
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Contacting ${product['seller']}...'),
-        backgroundColor: Colors.blue[600],
       ),
     );
   }
@@ -630,23 +548,12 @@ class _CropsPageState extends State<CropsPage> {
                   child: Column(
                     children: [
                       _buildSortingDropdown(
-                        'Crop Name',
-                        _selectedCropName,
-                        _cropNames,
+                        'Pesticide Type',
+                        _selectedPesticideType,
+                        _pesticideTypes,
                         (value) {
                           setState(() {
-                            _selectedCropName = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSortingDropdown(
-                        'Grade',
-                        _selectedGrade,
-                        _grades,
-                        (value) {
-                          setState(() {
-                            _selectedGrade = value;
+                            _selectedPesticideType = value;
                           });
                         },
                       ),
@@ -661,20 +568,20 @@ class _CropsPageState extends State<CropsPage> {
                             if (value != null) {
                               _districts = TanzaniaRegions.getDistrictNames(value);
                             } else {
-                              _districts = [];
+                              _districts = TanzaniaRegions.getAllDistrictNames();
                             }
-                            _selectedDistrict = null;
+                            _selectedLocation = null;
                           });
                         },
                       ),
                       const SizedBox(height: 16),
                       _buildSortingDropdown(
                         'District',
-                        _selectedDistrict,
+                        _selectedLocation,
                         _districts,
                         (value) {
                           setState(() {
-                            _selectedDistrict = value;
+                            _selectedLocation = value;
                           });
                         },
                       ),
@@ -689,11 +596,10 @@ class _CropsPageState extends State<CropsPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          _selectedCropName = null;
-                          _selectedGrade = null;
-                          _selectedDistrict = null;
+                          _selectedPesticideType = null;
+                          _selectedLocation = null;
                           _selectedRegion = null;
-                          _districts = [];
+                          _districts = TanzaniaRegions.getAllDistrictNames();
                         });
                         Navigator.pop(context);
                       },

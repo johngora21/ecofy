@@ -6,6 +6,7 @@ import 'screens/farms_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/orders_screen.dart';
 import 'screens/resources_screen.dart';
+import 'screens/cart_screen.dart';
 import 'core/theme/app_theme.dart';
 
 void main() {
@@ -28,6 +29,7 @@ class EcofyApp extends StatelessWidget {
         '/farms': (context) => const FarmsScreen(),
         '/resources': (context) => const ResourcesScreen(),
         '/orders': (context) => const OrdersScreen(),
+        '/cart': (context) => const CartScreen(),
       },
     );
   }
@@ -75,6 +77,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
               // TODO: Show notifications
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            onPressed: () {
+              Navigator.pushNamed(context, '/cart');
             },
           ),
         ],

@@ -4,6 +4,15 @@ import '../core/theme/app_theme.dart';
 import '../data/tanzania_regions.dart';
 import '../data/tanzania_crops.dart';
 import 'product_details_screen.dart';
+import 'crops_page.dart';
+import 'livestock_screen.dart';
+import 'poultry_screen.dart';
+import 'fisheries_screen.dart';
+import 'seeds_screen.dart';
+import 'fertilizers_screen.dart';
+import 'pesticides_screen.dart';
+import 'equipment_screen.dart';
+import 'all_products_screen.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -251,7 +260,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       padding: const EdgeInsets.all(8.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.75,
+        childAspectRatio: 0.5,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
@@ -263,8 +272,24 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Widget _buildCategoryView() {
-    if (_activeTab == 'crops') {
-      return _buildCropsView();
+    if (_activeTab == 'all-products') {
+      return const AllProductsScreen();
+    } else if (_activeTab == 'crops') {
+      return const CropsPage(selectedCrop: '');
+    } else if (_activeTab == 'livestock') {
+      return const LivestockScreen();
+    } else if (_activeTab == 'poultry') {
+      return const PoultryScreen();
+    } else if (_activeTab == 'fisheries') {
+      return const FisheriesScreen();
+    } else if (_activeTab == 'seeds') {
+      return const SeedsScreen();
+    } else if (_activeTab == 'fertilizers') {
+      return const FertilizersScreen();
+    } else if (_activeTab == 'pesticides') {
+      return const PesticidesScreen();
+    } else if (_activeTab == 'equipment') {
+      return const EquipmentScreen();
     }
     
     return Container(
@@ -310,254 +335,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildCropsView() {
-    // Mock product data for crops
-    List<Map<String, dynamic>> cropsData = [
-      {
-        'id': '1',
-        'name': 'Fresh Tomatoes',
-        'grade': 'Grade A',
-        'region': 'Arusha',
-        'district': 'Arusha City',
-        'price': 2500,
-        'originalPrice': 3000,
-        'quantity': '50kg',
-        'image': '🍅',
-        'description': 'Fresh red tomatoes, perfect for cooking and salads',
-        'seller': 'Mama Farm',
-        'rating': 4.5,
-        'reviews': 23,
-        'inStock': true,
-        'isNew': true,
-        'discount': 17,
-      },
-      {
-        'id': '2',
-        'name': 'Premium Maize Grains',
-        'grade': 'Premium',
-        'region': 'Dodoma',
-        'district': 'Dodoma City',
-        'price': 1800,
-        'originalPrice': 1800,
-        'quantity': '100kg',
-        'image': '🌽',
-        'description': 'High-quality maize grains, suitable for various uses',
-        'seller': 'Dodoma Farmers Coop',
-        'rating': 4.8,
-        'reviews': 45,
-        'inStock': true,
-        'isNew': false,
-        'discount': 0,
-      },
-      {
-        'id': '3',
-        'name': 'Irish Potatoes',
-        'grade': 'Grade B',
-        'region': 'Kilimanjaro',
-        'district': 'Moshi',
-        'price': 3200,
-        'originalPrice': 3800,
-        'quantity': '75kg',
-        'image': '🥔',
-        'description': 'Fresh potatoes from the slopes of Kilimanjaro',
-        'seller': 'Kilimanjaro Fresh',
-        'rating': 4.2,
-        'reviews': 18,
-        'inStock': true,
-        'isNew': false,
-        'discount': 16,
-      },
-      {
-        'id': '4',
-        'name': 'Sweet Bananas',
-        'grade': 'Grade A',
-        'region': 'Kagera',
-        'district': 'Bukoba',
-        'price': 1500,
-        'originalPrice': 1500,
-        'quantity': '60kg',
-        'image': '🍌',
-        'description': 'Sweet bananas from the lake region',
-        'seller': 'Lake Region Fruits',
-        'rating': 4.6,
-        'reviews': 32,
-        'inStock': false,
-        'isNew': true,
-        'discount': 0,
-      },
-      {
-        'id': '5',
-        'name': 'Fresh Cassava Roots',
-        'grade': 'Standard',
-        'region': 'Mwanza',
-        'district': 'Mwanza City',
-        'price': 1200,
-        'originalPrice': 1500,
-        'quantity': '80kg',
-        'image': '🥔',
-        'description': 'Fresh cassava roots, perfect for traditional dishes',
-        'seller': 'Mwanza Roots',
-        'rating': 4.0,
-        'reviews': 15,
-        'inStock': true,
-        'isNew': false,
-        'discount': 20,
-      },
-      {
-        'id': '6',
-        'name': 'Organic Sweet Potatoes',
-        'grade': 'Premium',
-        'region': 'Morogoro',
-        'district': 'Morogoro Urban',
-        'price': 2800,
-        'originalPrice': 2800,
-        'quantity': '65kg',
-        'image': '🍠',
-        'description': 'Organic sweet potatoes, rich in nutrients',
-        'seller': 'Organic Morogoro',
-        'rating': 4.7,
-        'reviews': 28,
-        'inStock': true,
-        'isNew': true,
-        'discount': 0,
-      },
-    ];
 
-    // Filter the data based on selected filters
-    List<Map<String, dynamic>> filteredData = cropsData.where((product) {
-      bool matchesCrop = _selectedCropName == null || 
-          product['name'].toString().toLowerCase().contains(_selectedCropName!.toLowerCase());
-      bool matchesGrade = _selectedGrade == null || 
-          product['grade'] == _selectedGrade;
-      bool matchesRegion = _selectedRegion == null || 
-          product['region'] == _selectedRegion;
-      bool matchesDistrict = _selectedLocation == null || 
-          product['district'] == _selectedLocation;
-      
-      return matchesCrop && matchesGrade && matchesRegion && matchesDistrict;
-    }).toList();
-
-        return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 20),
-        
-        // Sorting Dropdowns
-        Row(
-          children: [
-            Expanded(
-              child: _buildSortingDropdown(
-                'Crop Name',
-                _selectedCropName,
-                _cropNames,
-                (value) {
-                  setState(() {
-                    _selectedCropName = value;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildSortingDropdown(
-                'Grade',
-                _selectedGrade,
-                _grades,
-                (value) {
-                  setState(() {
-                    _selectedGrade = value;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildSortingDropdown(
-                'Region',
-                _selectedRegion,
-                _regions,
-                (value) {
-                  setState(() {
-                    _selectedRegion = value;
-                    if (value != null) {
-                      _districts = TanzaniaRegions.getDistrictNames(value);
-                    } else {
-                      _districts = [];
-                    }
-                    _selectedLocation = null;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildSortingDropdown(
-                'District',
-                _selectedLocation,
-                _districts,
-                (value) {
-                  setState(() {
-                    _selectedLocation = value;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        
-        // Clear Filters Button
-        if (_selectedCropName != null || _selectedGrade != null || _selectedLocation != null || _selectedRegion != null)
-          Container(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _selectedCropName = null;
-                  _selectedGrade = null;
-                  _selectedLocation = null;
-                  _selectedRegion = null;
-                  _districts = [];
-                });
-              },
-              icon: const Icon(Icons.clear, size: 16),
-              label: const Text('Clear Filters'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryGreen,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        const SizedBox(height: 20),
-        
-        // Modern Product Cards Grid
-        Expanded(
-          child: filteredData.isEmpty
-              ? _buildEmptyState()
-              : GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: filteredData.length,
-                  itemBuilder: (context, index) {
-                    return _buildModernProductCard(filteredData[index]);
-                  },
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildSortingDropdown(String label, String? selectedValue, List<String> options, Function(String?) onChanged) {
     return Column(
@@ -629,162 +407,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildFilteredCropsList() {
-    // Mock filtered data based on selections
-    List<Map<String, dynamic>> filteredCrops = [
-      {
-        'name': 'Maize',
-        'grade': 'Grade A',
-        'region': 'Arusha',
-        'district': 'Arusha City',
-        'price': 'TZS 2,500',
-        'quantity': '100kg',
-        'image': 'assets/images/maize.jpg',
-      },
-      {
-        'name': 'Rice',
-        'grade': 'Premium',
-        'region': 'Dar es Salaam',
-        'district': 'Ilala',
-        'price': 'TZS 3,200',
-        'quantity': '50kg',
-        'image': 'assets/images/rice.jpg',
-      },
-      {
-        'name': 'Beans',
-        'grade': 'Grade B',
-        'region': 'Mwanza',
-        'district': 'Mwanza City',
-        'price': 'TZS 1,800',
-        'quantity': '75kg',
-        'image': 'assets/images/beans.jpg',
-      },
-      {
-        'name': 'Tomato',
-        'grade': 'Grade A',
-        'region': 'Kilimanjaro',
-        'district': 'Moshi Municipal',
-        'price': 'TZS 2,000',
-        'quantity': '25kg',
-        'image': 'assets/images/tomato.jpg',
-      },
-      {
-        'name': 'Irish Potato',
-        'grade': 'Premium',
-        'region': 'Arusha',
-        'district': 'Meru',
-        'price': 'TZS 3,500',
-        'quantity': '80kg',
-        'image': 'assets/images/potato.jpg',
-      },
-    ];
-
-    // Apply filters
-    if (_selectedCropName != null) {
-      filteredCrops = filteredCrops.where((crop) => crop['name'] == _selectedCropName).toList();
-    }
-    if (_selectedGrade != null) {
-      filteredCrops = filteredCrops.where((crop) => crop['grade'] == _selectedGrade).toList();
-    }
-    if (_selectedRegion != null) {
-      filteredCrops = filteredCrops.where((crop) => crop['region'] == _selectedRegion).toList();
-    }
-    if (_selectedLocation != null) {
-      filteredCrops = filteredCrops.where((crop) => crop['district'] == _selectedLocation).toList();
-    }
-
-    if (filteredCrops.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.search_off,
-                size: 48,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No crops found with selected filters',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: filteredCrops.length,
-      itemBuilder: (context, index) {
-        final crop = filteredCrops[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.agriculture,
-                color: AppTheme.primaryGreen,
-                size: 24,
-              ),
-            ),
-            title: Text(
-              crop['name'],
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${crop['grade']} • ${crop['region']}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                Text(
-                  '${crop['district']}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                Text(
-                  '${crop['quantity']} • ${crop['price']}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppTheme.primaryGreen,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey[400],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -824,6 +447,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     },
                   ),
                 ),
+
               ],
             ),
           ),
@@ -832,9 +456,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
-              child: _activeTab == 'all-products'
-                  ? _buildProductGrid()
-                  : _buildCategoryView(),
+              child: _buildCategoryView(),
             ),
           ),
         ],
@@ -878,54 +500,54 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     return GestureDetector(
       onTap: () => _navigateToProductDetails(product),
       child: Container(
-        decoration: BoxDecoration(
+            decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
+              boxShadow: [
+                BoxShadow(
               color: Colors.black.withOpacity(0.08),
               spreadRadius: 0,
               blurRadius: 12,
               offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image section
-          Stack(
-            children: [
-              Container(
-                height: 160,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppTheme.primaryGreen.withOpacity(0.1),
-                      AppTheme.primaryGreen.withOpacity(0.05),
-                    ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+            // Image section
+            Stack(
+              children: [
+                Container(
+                  height: 220,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.primaryGreen.withOpacity(0.1),
+                        AppTheme.primaryGreen.withOpacity(0.05),
+                      ],
+                ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
                   ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+                  child: Center(
+                    child: Text(
+                      product['image'],
+                      style: const TextStyle(fontSize: 100),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    product['image'],
-                    style: const TextStyle(fontSize: 70),
-                  ),
                 ),
-              ),
-              
-              // Grade badge
-              Positioned(
-                top: 8,
-                right: 8,
-                                  child: Container(
+                
+                // Grade badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryGreen,
@@ -947,75 +569,76 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       ),
                     ),
                   ),
-              ),
-            ],
-          ),
-          
-          // Product details
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Crop name
-                  Text(
-                    product['name'],
-                    style: const TextStyle(
-                      fontSize: 12,
+                ),
+              ],
+            ),
+            
+            // Product details
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Crop name
+                    Text(
+                      product['name'],
+                                          style: const TextStyle(
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                       height: 1.1,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  
-                  // Price
-                  Text(
-                    '${product['price']} TZS/${_extractUnit(product['quantity'])}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryGreen,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const Spacer(),
-                  
-                  // Cart icon at bottom right
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Container(
-                      width: 26,
-                      height: 26,
-                      decoration: BoxDecoration(
+                    const SizedBox(height: 3),
+                    
+                    // Price
+                    Text(
+                      '${product['price']} TZS/${_extractUnit(product['quantity'])}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                         color: AppTheme.primaryGreen,
-                        borderRadius: BorderRadius.circular(13),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryGreen.withOpacity(0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        onPressed: product['inStock'] ? () => _addToCart(product) : null,
-                        icon: Icon(
-                          Icons.shopping_cart,
-                          size: 13,
-                          color: Colors.white,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
                       ),
                     ),
-                  ),
-                ],
+                    const Spacer(),
+                    
+                    // Cart icon at bottom right
+                    Align(
+                      alignment: Alignment.bottomRight,
+                                              child: Container(
+                          width: 32,
+                          height: 32,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen,
+                          borderRadius: BorderRadius.circular(13),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryGreen.withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          onPressed: product['inStock'] ? () => _addToCart(product) : null,
+                          icon: Icon(
+                            Icons.shopping_cart,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1287,4 +910,4 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       ),
     );
   }
-}
+} 

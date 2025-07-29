@@ -90,7 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return RegionsPage(selectedCrop: selectedCrop);
       default:
         return MarketPage(selectedCrop: selectedCrop);
-    }
+  }
   }
 
   @override
@@ -258,54 +258,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   
                   // Crop Selection Row
                   Row(
-                    children: [
-                      const Spacer(),
-                      Container(
-                        width: 180,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.grey.shade300, width: 1),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: selectedCrop,
-                            isExpanded: true,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            hint: Text(
-                              'Select crop',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            icon: Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Colors.grey.shade600,
-                              size: 18,
-                            ),
-                            items: crops.map((String crop) {
-                              return DropdownMenuItem<String>(
-                                value: crop,
-                                child: Text(
-                                  crop,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  selectedCrop = newValue;
-                                });
-                              }
-                            },
+                children: [
+                  const Spacer(),
+                  Container(
+                    width: 180,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedCrop,
+                        isExpanded: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        hint: Text(
+                          'Select crop',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
                           ),
                         ),
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey.shade600,
+                          size: 18,
+                        ),
+                        items: crops.map((String crop) {
+                          return DropdownMenuItem<String>(
+                            value: crop,
+                            child: Text(
+                              crop,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              selectedCrop = newValue;
+                            });
+                          }
+                        },
+                      ),
+                    ),
                       ),
                     ],
                   ),
