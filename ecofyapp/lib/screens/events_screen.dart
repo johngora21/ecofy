@@ -164,7 +164,7 @@ class _EventsScreenState extends State<EventsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: AppTheme.shadowLight,
@@ -175,14 +175,14 @@ class _EventsScreenState extends State<EventsScreen> {
       ),
       child: Column(
         children: [
-          // Event Image Section
+          // Thumbnail Section
           Container(
-            height: 160,
+            height: 180,
             decoration: BoxDecoration(
               color: AppTheme.primaryGreen.withOpacity(0.1),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
             ),
             child: Stack(

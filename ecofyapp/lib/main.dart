@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
 import 'screens/marketplace_screen.dart';
 import 'screens/market_price_screen.dart';
 import 'screens/farms_screen.dart';
@@ -7,6 +6,11 @@ import 'screens/dashboard_screen.dart';
 import 'screens/orders_screen.dart';
 import 'screens/resources_screen.dart';
 import 'screens/cart_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/reports_screen.dart';
+import 'screens/language_screen.dart';
+import 'screens/notifications_screen.dart';
 import 'core/theme/app_theme.dart';
 
 void main() {
@@ -30,6 +34,11 @@ class EcofyApp extends StatelessWidget {
         '/resources': (context) => const ResourcesScreen(),
         '/orders': (context) => const OrdersScreen(),
         '/cart': (context) => const CartScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/edit-profile': (context) => const EditProfileScreen(),
+        '/reports': (context) => const ReportsScreen(),
+        '/language': (context) => const LanguageScreen(),
+        '/notifications': (context) => const NotificationsScreen(),
       },
     );
   }
@@ -65,6 +74,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
+        toolbarHeight: 56,
+        titleSpacing: 0,
         title: Text(_titles[_selectedIndex]),
         leading: IconButton(
           icon: const Icon(Icons.menu),
@@ -76,7 +87,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // TODO: Show notifications
+              Navigator.pushNamed(context, '/notifications');
             },
           ),
           IconButton(
@@ -91,7 +102,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            Container(
+              height: 80,
+              padding: const EdgeInsets.all(8),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppTheme.primaryGreen, AppTheme.primaryGreenDark],
@@ -99,8 +112,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
                   const CircleAvatar(
                     radius: 30,
@@ -111,29 +123,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       color: AppTheme.primaryGreen,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Ecofy User',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    'user@ecofy.com',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'Ecofy User',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.shopping_bag, color: AppTheme.primaryGreen),
-              title: const Text('Orders'),
+              leading: const Icon(Icons.person, color: AppTheme.primaryGreen),
+              title: const Text('Profile'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/orders');
+                Navigator.pushNamed(context, '/profile');
               },
             ),
             ListTile(
@@ -145,36 +153,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person, color: AppTheme.primaryGreen),
-              title: const Text('Profile'),
+              leading: const Icon(Icons.shopping_bag, color: AppTheme.primaryGreen),
+              title: const Text('Orders'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to profile
+                Navigator.pushNamed(context, '/orders');
               },
             ),
             ListTile(
-              leading: const Icon(Icons.analytics, color: AppTheme.primaryGreen),
+              leading: const Icon(Icons.assessment, color: AppTheme.primaryGreen),
               title: const Text('Reports'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to reports
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.settings, color: AppTheme.textSecondary),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to settings
+                Navigator.pushNamed(context, '/reports');
               },
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.errorRed),
-              title: const Text('Logout', style: TextStyle(color: AppTheme.errorRed)),
+              leading: const Icon(Icons.language, color: AppTheme.primaryGreen),
+              title: const Text('Language'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Handle logout
+                Navigator.pushNamed(context, '/language');
               },
             ),
           ],

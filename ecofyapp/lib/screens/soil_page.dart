@@ -26,147 +26,132 @@ class SoilPage extends StatelessWidget {
                 _buildInfoRow('Drainage', 'Well-drained'),
                 _buildInfoRow('Soil Depth', '120cm (Deep)'),
                 _buildInfoRow('Texture', 'Medium texture'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // NPK Analysis Section
-          _buildSectionCard(
-            title: 'NPK Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildNutrientCard('Nitrogen (N)', 'Low', '15 kg/ha', Colors.red, 'Needs supplementation'),
-                _buildNutrientCard('Phosphorus (P)', 'Medium', '25 kg/ha', Colors.orange, 'Adequate for growth'),
-                _buildNutrientCard('Potassium (K)', 'High', '180 kg/ha', Colors.green, 'Sufficient levels'),
-                const SizedBox(height: 12),
-                Text(
-                  'Nutrient Recommendations:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDetailedSoilAnalysis(context),
+                    icon: const Icon(Icons.analytics),
+                    label: Text('View More', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Apply nitrogen fertilizer (NPK 23:23:0)\n'
-                  '• Consider organic manure for nitrogen\n'
-                  '• Phosphorus levels are adequate\n'
-                  '• Potassium levels are optimal',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // pH & Salinity Section
-          _buildSectionCard(
-            title: 'pH & Salinity Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPhCard('Soil pH', '6.2', 'Optimal for maize', Colors.green),
-                _buildPhCard('Salinity (EC)', '0.8 dS/m', 'Low salinity', Colors.green),
-                _buildPhCard('Alkalinity', 'Low', 'No issues', Colors.green),
-                const SizedBox(height: 12),
-                Text(
-                  'pH Management:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• pH 6.2 is optimal for maize growth\n'
-                  '• No lime application needed\n'
-                  '• Low salinity ensures good root development\n'
-                  '• Soil is well-suited for maize cultivation',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Soil Recommendations Section
-          _buildSectionCard(
-            title: 'Soil Management Recommendations',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRecommendationCard(
-                  'Fertilization Strategy',
-                  'Apply NPK 23:23:0 at planting',
-                  Icons.eco,
-                  Colors.green,
-                ),
-                _buildRecommendationCard(
-                  'Organic Matter',
-                  'Add compost or manure to improve structure',
-                  Icons.grass,
-                  Colors.orange,
-                ),
-                _buildRecommendationCard(
-                  'Soil Testing',
-                  'Test soil every 2-3 years',
-                  Icons.science,
-                  Colors.blue,
-                ),
-                _buildRecommendationCard(
-                  'Crop Rotation',
-                  'Rotate with legumes to improve nitrogen',
-                  Icons.refresh,
-                  Colors.purple,
-                ),
-                _buildRecommendationCard(
-                  'Conservation',
-                  'Practice minimum tillage to preserve structure',
-                  Icons.agriculture,
-                  Colors.teal,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Soil Properties Section
-          _buildSectionCard(
-            title: 'Detailed Soil Properties',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPropertyRow('Clay Content', '25%'),
-                _buildPropertyRow('Silt Content', '35%'),
-                _buildPropertyRow('Sand Content', '40%'),
-                _buildPropertyRow('Bulk Density', '1.4 g/cm³'),
-                _buildPropertyRow('Porosity', '45%'),
-                _buildPropertyRow('Water Holding Capacity', 'Good'),
-                const SizedBox(height: 12),
-                Text(
-                  'Soil Structure Analysis:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Well-balanced texture with good drainage\n'
-                  '• Adequate water holding capacity\n'
-                  '• Good root penetration potential\n'
-                  '• Suitable for mechanized farming',
-                  style: GoogleFonts.poppins(fontSize: 12),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDetailedSoilAnalysis(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Detailed Soil Analysis', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Nutrient Analysis Section
+                      _buildSectionCard(
+                        title: 'Nutrient Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildNutrientCard('Nitrogen (N)', 'Medium', '15-20 ppm', Colors.orange, 'Consider adding nitrogen fertilizer'),
+                            _buildNutrientCard('Phosphorus (P)', 'High', '25-30 ppm', Colors.green, 'Adequate for crop growth'),
+                            _buildNutrientCard('Potassium (K)', 'Medium', '150-200 ppm', Colors.orange, 'May need potassium supplement'),
+                            _buildNutrientCard('Calcium (Ca)', 'High', '800-1000 ppm', Colors.green, 'Good for soil structure'),
+                            _buildNutrientCard('Magnesium (Mg)', 'Medium', '100-150 ppm', Colors.blue, 'Adequate levels'),
+                            _buildNutrientCard('Sulfur (S)', 'Low', '10-15 ppm', Colors.red, 'Consider sulfur application'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // pH Analysis Section
+                      _buildSectionCard(
+                        title: 'pH Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildPhCard('Current pH', '6.2', 'Slightly acidic', Colors.orange),
+                            _buildPhCard('Optimal Range', '6.0-7.0', 'Good for maize', Colors.green),
+                            _buildPhCard('Recommendation', 'Maintain current pH', 'No adjustment needed', Colors.blue),
+                            const SizedBox(height: 12),
+                            Text(
+                              'pH Management:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Current pH is within optimal range for maize\n'
+                              '• No lime application needed\n'
+                              '• Monitor pH changes over time\n'
+                              '• Consider soil testing every 2-3 years',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Soil Management Section
+                      _buildSectionCard(
+                        title: 'Soil Management Recommendations',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildManagementCard('Fertilization', 'Apply NPK fertilizer', 'Based on soil test results', Icons.eco, Colors.green),
+                            _buildManagementCard('Organic Matter', 'Add compost/manure', 'Improve soil structure', Icons.grass, Colors.blue),
+                            _buildManagementCard('Crop Rotation', 'Include legumes', 'Fix nitrogen naturally', Icons.refresh, Colors.orange),
+                            _buildManagementCard('Conservation', 'Practice no-till', 'Reduce soil erosion', Icons.shield, Colors.purple),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -209,21 +194,29 @@ class SoilPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryGreen,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryGreen,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -330,7 +323,7 @@ class SoilPage extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendationCard(String title, String description, IconData icon, Color color) {
+  Widget _buildManagementCard(String title, String description, String note, IconData icon, Color color) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -363,33 +356,14 @@ class SoilPage extends StatelessWidget {
                     color: Colors.grey[600],
                   ),
                 ),
+                Text(
+                  note,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: Colors.grey[600],
+                  ),
+                ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPropertyRow(String property, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            property,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryGreen,
             ),
           ),
         ],

@@ -26,188 +26,164 @@ class ClimatePage extends StatelessWidget {
                 _buildInfoRow('Humidity', '60-80%'),
                 _buildInfoRow('Sunshine Hours', '6-8 hours daily'),
                 _buildInfoRow('Wind Speed', 'Light to moderate'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Temperature Analysis Section
-          _buildSectionCard(
-            title: 'Temperature Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTempCard('Minimum Temp', '18°C', 'Optimal for growth', Colors.blue),
-                _buildTempCard('Maximum Temp', '32°C', 'Within tolerance', Colors.orange),
-                _buildTempCard('Average Temp', '25°C', 'Ideal for maize', Colors.green),
-                _buildTempCard('Night Temp', '15°C', 'Good for respiration', Colors.purple),
-                const SizedBox(height: 12),
-                Text(
-                  'Temperature Management:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDetailedClimateAnalysis(context),
+                    icon: const Icon(Icons.analytics),
+                    label: Text('View More', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Optimal temperature range for maize: 20-30°C\n'
-                  '• Temperatures are within ideal range\n'
-                  '• No extreme temperature stress expected\n'
-                  '• Good diurnal temperature variation',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Rainfall Analysis Section
-          _buildSectionCard(
-            title: 'Rainfall Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRainfallCard('Annual Rainfall', '1200mm', 'Adequate', Colors.green),
-                _buildRainfallCard('Growing Season', '800mm', 'Sufficient', Colors.green),
-                _buildRainfallCard('Distribution', 'Bimodal', 'Good pattern', Colors.blue),
-                _buildRainfallCard('Dry Spells', 'Minimal', 'Low risk', Colors.green),
-                const SizedBox(height: 12),
-                Text(
-                  'Rainfall Management:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Bimodal rainfall pattern suits maize\n'
-                  '• Adequate rainfall for crop development\n'
-                  '• Consider irrigation during dry spells\n'
-                  '• Plan planting around rainfall peaks',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Growing Seasons Section
-          _buildSectionCard(
-            title: 'Growing Seasons',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSeasonCard(
-                  'Long Rains (March-May)',
-                  'Primary growing season',
-                  'Optimal conditions',
-                  Icons.wb_sunny,
-                  Colors.orange,
-                ),
-                _buildSeasonCard(
-                  'Short Rains (Oct-Dec)',
-                  'Secondary growing season',
-                  'Good for late crops',
-                  Icons.cloud,
-                  Colors.blue,
-                ),
-                _buildSeasonCard(
-                  'Dry Season (Jan-Feb)',
-                  'Harvest and preparation',
-                  'Plan for next season',
-                  Icons.agriculture,
-                  Colors.grey,
-                ),
-                _buildSeasonCard(
-                  'Dry Season (Jun-Sep)',
-                  'Storage and marketing',
-                  'Focus on post-harvest',
-                  Icons.warehouse,
-                  Colors.purple,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Climate Management Section
-          _buildSectionCard(
-            title: 'Climate Management Strategies',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStrategyCard(
-                  'Irrigation Planning',
-                  'Supplement rainfall during dry spells',
-                  Icons.water_drop,
-                  Colors.blue,
-                ),
-                _buildStrategyCard(
-                  'Planting Timing',
-                  'Align with rainfall patterns',
-                  Icons.calendar_today,
-                  Colors.green,
-                ),
-                _buildStrategyCard(
-                  'Crop Protection',
-                  'Protect from extreme weather',
-                  Icons.shield,
-                  Colors.orange,
-                ),
-                _buildStrategyCard(
-                  'Soil Moisture',
-                  'Maintain optimal soil moisture',
-                  Icons.eco,
-                  Colors.teal,
-                ),
-                _buildStrategyCard(
-                  'Harvest Timing',
-                  'Avoid harvesting during rains',
-                  Icons.schedule,
-                  Colors.purple,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Climate Parameters Section
-          _buildSectionCard(
-            title: 'Detailed Climate Parameters',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildParameterRow('Relative Humidity', '70%'),
-                _buildParameterRow('Evaporation Rate', '4mm/day'),
-                _buildParameterRow('Solar Radiation', '18 MJ/m²/day'),
-                _buildParameterRow('Frost Risk', 'None'),
-                _buildParameterRow('Heat Stress', 'Low risk'),
-                _buildParameterRow('Wind Erosion', 'Minimal'),
-                const SizedBox(height: 12),
-                Text(
-                  'Climate Suitability:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Climate is highly suitable for maize\n'
-                  '• No major climate constraints\n'
-                  '• Good growing conditions year-round\n'
-                  '• Favorable for high yields',
-                  style: GoogleFonts.poppins(fontSize: 12),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDetailedClimateAnalysis(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Detailed Climate Analysis', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Temperature Analysis Section
+                      _buildSectionCard(
+                        title: 'Temperature Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTempCard('Minimum Temp', '18°C', 'Optimal for growth', Colors.blue),
+                            _buildTempCard('Maximum Temp', '32°C', 'Within tolerance', Colors.orange),
+                            _buildTempCard('Average Temp', '25°C', 'Ideal for maize', Colors.green),
+                            _buildTempCard('Night Temp', '15°C', 'Good for respiration', Colors.purple),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Temperature Management:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Optimal temperature range for maize: 20-30°C\n'
+                              '• Temperatures are within ideal range\n'
+                              '• No extreme temperature stress expected\n'
+                              '• Good diurnal temperature variation',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Rainfall Analysis Section
+                      _buildSectionCard(
+                        title: 'Rainfall Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildRainfallCard('Annual Rainfall', '1200mm', 'Adequate', Colors.green),
+                            _buildRainfallCard('Growing Season', '800mm', 'Sufficient', Colors.green),
+                            _buildRainfallCard('Distribution', 'Bimodal', 'Good pattern', Colors.blue),
+                            _buildRainfallCard('Dry Spells', 'Minimal', 'Low risk', Colors.green),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Rainfall Management:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Bimodal rainfall pattern suits maize\n'
+                              '• Adequate rainfall for crop development\n'
+                              '• Consider irrigation during dry spells\n'
+                              '• Plan planting around rainfall peaks',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Growing Seasons Section
+                      _buildSectionCard(
+                        title: 'Growing Seasons',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSeasonCard('Long Rains', 'March-May', 'Main planting season', Colors.green),
+                            _buildSeasonCard('Short Rains', 'October-December', 'Second planting', Colors.blue),
+                            _buildSeasonCard('Dry Season', 'June-September', 'Harvest period', Colors.orange),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Seasonal Planning:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Plan planting with rainfall onset\n'
+                              '• Use early maturing varieties in short rains\n'
+                              '• Consider irrigation for dry season\n'
+                              '• Monitor weather forecasts regularly',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -250,21 +226,29 @@ class ClimatePage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryGreen,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryGreen,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -355,7 +339,7 @@ class ClimatePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSeasonCard(String season, String description, String status, IconData icon, Color color) {
+  Widget _buildSeasonCard(String season, String description, String status, Color color) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -367,7 +351,7 @@ class ClimatePage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
+          Icon(Icons.wb_sunny, color: color, size: 20), // Changed icon to wb_sunny for consistency
           const SizedBox(width: 12),
           Expanded(
             child: Column(

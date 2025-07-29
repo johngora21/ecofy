@@ -22,13 +22,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int selectedSectionIndex = 0;
 
   final List<String> crops = TanzaniaCrops.getCropNames();
-  final List<Map<String, dynamic>> sections = [
+  final List<Map<String, dynamic>> sections = const [
     {'title': 'Market', 'icon': Icons.trending_up, 'color': AppTheme.primaryGreen},
-    {'title': 'Soil Insights', 'icon': Icons.eco, 'color': AppTheme.successGreen},
-    {'title': 'Climate', 'icon': Icons.wb_sunny, 'color': AppTheme.warningYellow},
-    {'title': 'Seed Types', 'icon': Icons.grass, 'color': AppTheme.successGreen},
-    {'title': 'Risks', 'icon': Icons.warning, 'color': AppTheme.warningYellow},
-    {'title': 'Regions', 'icon': Icons.location_on, 'color': AppTheme.secondaryBlue},
+    {'title': 'Soil', 'icon': Icons.eco, 'color': AppTheme.primaryGreen},
+    {'title': 'Climate', 'icon': Icons.wb_sunny, 'color': AppTheme.primaryGreen},
+    {'title': 'Seeds', 'icon': Icons.grass, 'color': AppTheme.primaryGreen},
+    {'title': 'Risks', 'icon': Icons.warning, 'color': AppTheme.primaryGreen},
+    {'title': 'Regions', 'icon': Icons.location_on, 'color': AppTheme.primaryGreen},
   ];
 
   Widget _buildSectionButton(BuildContext context, Map<String, dynamic> section, int index) {
@@ -42,9 +42,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       child: Container(
         margin: const EdgeInsets.only(right: 8.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         decoration: BoxDecoration(
-          color: isSelected ? section['color'] : AppTheme.surfaceLight,
+          color: isSelected ? section['color'] : Colors.white,
           borderRadius: BorderRadius.circular(8.0),
           border: Border.all(
             color: isSelected ? section['color'] : AppTheme.borderLight,
@@ -59,13 +59,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               size: 16,
               color: isSelected ? Colors.white : section['color'],
             ),
-            const SizedBox(width: 8),
-            Text(
-              section['title'],
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : AppTheme.textPrimary,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                section['title'],
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : AppTheme.textPrimary,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -141,16 +144,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: AppTheme.surfaceLight,
+                color: Colors.white,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
                 ),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: AppTheme.shadowLight,
                     blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),

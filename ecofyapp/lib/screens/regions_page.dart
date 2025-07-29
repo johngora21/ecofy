@@ -40,234 +40,149 @@ class RegionsPage extends StatelessWidget {
                   '• Market access and infrastructure',
                   style: GoogleFonts.poppins(fontSize: 12),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Top Recommended Regions Section
-          _buildSectionCard(
-            title: 'Top Recommended Regions',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRegionCard(
-                  'Trans Nzoia County',
-                  'North Rift',
-                  'High yield potential',
-                  'Excellent soil and climate',
-                  Icons.location_on,
-                  Colors.green,
-                ),
-                _buildRegionCard(
-                  'Uasin Gishu County',
-                  'North Rift',
-                  'Large scale farming',
-                  'Good infrastructure',
-                  Icons.agriculture,
-                  Colors.green,
-                ),
-                _buildRegionCard(
-                  'Nakuru County',
-                  'Rift Valley',
-                  'Mixed farming',
-                  'Favorable conditions',
-                  Icons.eco,
-                  Colors.blue,
-                ),
-                _buildRegionCard(
-                  'Bungoma County',
-                  'Western Kenya',
-                  'Small scale farming',
-                  'Good rainfall pattern',
-                  Icons.water_drop,
-                  Colors.orange,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Regional Analysis Section
-          _buildSectionCard(
-            title: 'Detailed Regional Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRegionalAnalysisCard(
-                  'North Rift Region',
-                  'Trans Nzoia, Uasin Gishu',
-                  'High suitability',
-                  'Large scale commercial farming',
-                  Colors.green,
-                ),
-                _buildRegionalAnalysisCard(
-                  'Central Rift Region',
-                  'Nakuru, Laikipia',
-                  'Medium to high suitability',
-                  'Mixed farming systems',
-                  Colors.blue,
-                ),
-                _buildRegionalAnalysisCard(
-                  'Western Region',
-                  'Bungoma, Kakamega',
-                  'Medium suitability',
-                  'Small scale farming',
-                  Colors.orange,
-                ),
-                _buildRegionalAnalysisCard(
-                  'Eastern Region',
-                  'Machakos, Kitui',
-                  'Low to medium suitability',
-                  'Drought-prone areas',
-                  Colors.red,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Climate Zones Section
-          _buildSectionCard(
-            title: 'Climate Zone Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildClimateZoneCard('Highland Zone', '1500-2500m', 'Optimal for maize', 'Cool temperatures', Colors.green),
-                _buildClimateZoneCard('Mid-altitude Zone', '1000-1500m', 'Good for maize', 'Moderate temperatures', Colors.blue),
-                _buildClimateZoneCard('Lowland Zone', '500-1000m', 'Challenging', 'Hot and dry', Colors.orange),
-                _buildClimateZoneCard('Coastal Zone', '0-500m', 'Not suitable', 'High humidity', Colors.red),
-                const SizedBox(height: 12),
-                Text(
-                  'Altitude Considerations:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDetailedRegionalAnalysis(context),
+                    icon: const Icon(Icons.analytics),
+                    label: Text('View More', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Maize grows best at 1000-2000m altitude\n'
-                  '• Higher altitudes have cooler temperatures\n'
-                  '• Lower altitudes may be too hot\n'
-                  '• Consider local climate variations',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Soil Zones Section
-          _buildSectionCard(
-            title: 'Soil Zone Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSoilZoneCard('Volcanic Soils', 'Rift Valley', 'Highly fertile', 'Excellent for maize', Colors.green),
-                _buildSoilZoneCard('Red Soils', 'Western Kenya', 'Moderately fertile', 'Good for maize', Colors.blue),
-                _buildSoilZoneCard('Sandy Soils', 'Coastal areas', 'Low fertility', 'Poor for maize', Colors.red),
-                _buildSoilZoneCard('Clay Soils', 'Various regions', 'Variable fertility', 'Depends on management', Colors.orange),
-                const SizedBox(height: 12),
-                Text(
-                  'Soil Considerations:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Volcanic soils are most suitable\n'
-                  '• Well-drained soils preferred\n'
-                  '• pH 6.0-7.0 is optimal\n'
-                  '• Organic matter content important',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Market Access Section
-          _buildSectionCard(
-            title: 'Market Access Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMarketAccessCard('Nairobi Metro', 'Excellent access', 'High demand', 'Premium prices', Colors.green),
-                _buildMarketAccessCard('Major Towns', 'Good access', 'Steady demand', 'Competitive prices', Colors.blue),
-                _buildMarketAccessCard('Rural Areas', 'Limited access', 'Local demand', 'Lower prices', Colors.orange),
-                _buildMarketAccessCard('Remote Areas', 'Poor access', 'Limited demand', 'Transport costs', Colors.red),
-                const SizedBox(height: 12),
-                Text(
-                  'Market Considerations:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Proximity to markets affects profitability\n'
-                  '• Transport costs impact net returns\n'
-                  '• Urban areas offer better prices\n'
-                  '• Consider storage facilities',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Infrastructure Section
-          _buildSectionCard(
-            title: 'Infrastructure Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfrastructureCard(
-                  'Road Network',
-                  'Good in major regions',
-                  'Affects transport costs',
-                  Icons.directions_car,
-                  Colors.blue,
-                ),
-                _buildInfrastructureCard(
-                  'Storage Facilities',
-                  'Available in major towns',
-                  'Reduces post-harvest losses',
-                  Icons.warehouse,
-                  Colors.green,
-                ),
-                _buildInfrastructureCard(
-                  'Processing Plants',
-                  'Limited availability',
-                  'Adds value to produce',
-                  Icons.factory,
-                  Colors.orange,
-                ),
-                _buildInfrastructureCard(
-                  'Extension Services',
-                  'Available in most areas',
-                  'Provides technical support',
-                  Icons.school,
-                  Colors.purple,
-                ),
-                _buildInfrastructureCard(
-                  'Financial Services',
-                  'Accessible in urban areas',
-                  'Supports investment',
-                  Icons.account_balance,
-                  Colors.teal,
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDetailedRegionalAnalysis(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Detailed Regional Analysis', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Top Recommended Regions Section
+                      _buildSectionCard(
+                        title: 'Top Recommended Regions',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildRegionCard(
+                              'Trans Nzoia County',
+                              'North Rift',
+                              'High yield potential',
+                              'Excellent soil and climate',
+                              Icons.location_on,
+                              Colors.green,
+                            ),
+                            _buildRegionCard(
+                              'Uasin Gishu County',
+                              'North Rift',
+                              'Large scale farming',
+                              'Good infrastructure',
+                              Icons.agriculture,
+                              Colors.green,
+                            ),
+                            _buildRegionCard(
+                              'Nakuru County',
+                              'Rift Valley',
+                              'Mixed farming',
+                              'Favorable conditions',
+                              Icons.eco,
+                              Colors.blue,
+                            ),
+                            _buildRegionCard(
+                              'Bungoma County',
+                              'Western Kenya',
+                              'Small scale farming',
+                              'Good rainfall pattern',
+                              Icons.water_drop,
+                              Colors.orange,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Regional Analysis Cards
+                      _buildRegionalAnalysisCard(
+                        'North Rift Region',
+                        'Trans Nzoia, Uasin Gishu',
+                        'High suitability',
+                        'Excellent soil and climate, high yield potential',
+                        Colors.green,
+                      ),
+                      _buildRegionalAnalysisCard(
+                        'Rift Valley Region',
+                        'Nakuru, Laikipia',
+                        'Moderate suitability',
+                        'Mixed farming systems',
+                        Colors.blue,
+                      ),
+                      _buildRegionalAnalysisCard(
+                        'Western Region',
+                        'Bungoma, Kakamega',
+                        'Good suitability',
+                        'Small scale farming, good rainfall pattern',
+                        Colors.orange,
+                      ),
+                      _buildRegionalAnalysisCard(
+                        'Central Region',
+                        'Nyeri, Murang\'a',
+                        'Moderate suitability',
+                        'Coffee and tea farming',
+                        Colors.purple,
+                      ),
+                      const SizedBox(height: 20),
+                      Text('Climate Zones', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 12),
+                      _buildClimateZoneCard('Highland Zone', '1500-2500m', 'Excellent for maize', 'Cool temperatures, good rainfall', Colors.green),
+                      _buildClimateZoneCard('Midland Zone', '1000-1500m', 'Good for mixed farming', 'Moderate temperatures', Colors.blue),
+                      _buildClimateZoneCard('Lowland Zone', '500-1000m', 'Suitable for drought-resistant crops', 'Hot and dry conditions', Colors.orange),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -425,26 +340,22 @@ class RegionsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                region,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  region,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
+              const SizedBox(width: 8),
+              Text(
+                suitability,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
                   color: color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  suitability,
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
                 ),
               ),
             ],

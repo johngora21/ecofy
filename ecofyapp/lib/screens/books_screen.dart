@@ -135,7 +135,7 @@ class _BooksScreenState extends State<BooksScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: AppTheme.shadowLight,
@@ -146,91 +146,104 @@ class _BooksScreenState extends State<BooksScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 60,
-              height: 90,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.book, color: Colors.green, size: 32),
+            // Header with book cover and title
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 60,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.book, color: Colors.green, size: 32),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(book['title'], style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text('by ${book['author']}', style: GoogleFonts.poppins(fontSize: 14, color: AppTheme.textSecondary)),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(book['title'], style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text('by ${book['author']}', style: GoogleFonts.poppins(fontSize: 14, color: AppTheme.textSecondary)),
-                  const SizedBox(height: 8),
-                  Text(book['description'], style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(book['category'], style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.primaryGreen)),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.secondaryBlue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(book['language'], style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.secondaryBlue)),
-                      ),
-                      const Spacer(),
-                    ],
+            const SizedBox(height: 12),
+            
+            // Description
+            Text(book['description'], style: GoogleFonts.poppins(fontSize: 13, color: AppTheme.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 12),
+            
+            // Tags
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Text('${book['pages']} pages', style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textTertiary)),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text('${book['rating']}', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
-                        ],
-                      ),
-                    ],
+                  child: Text(book['category'], style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.primaryGreen)),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // TODO: Implement download functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Downloading ${book['title']}...'),
-                            backgroundColor: AppTheme.primaryGreen,
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.download, size: 16),
-                      label: Text('Download', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryGreen,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
+                  child: Text(book['language'], style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.secondaryBlue)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Footer with pages and rating
+            Row(
+              children: [
+                Text('${book['pages']} pages', style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textTertiary)),
+                const Spacer(),
+                Row(
+                  children: [
+                    Icon(Icons.star, size: 14, color: Colors.amber),
+                    const SizedBox(width: 4),
+                    Text('${book['rating']}', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textTertiary)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Download button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Implement download functionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Downloading ${book['title']}...'),
+                      backgroundColor: AppTheme.primaryGreen,
                     ),
+                  );
+                },
+                icon: const Icon(Icons.download, size: 16),
+                label: Text('Download', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
+                ),
               ),
             ),
           ],

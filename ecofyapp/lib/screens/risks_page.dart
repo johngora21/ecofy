@@ -25,211 +25,197 @@ class RisksPage extends StatelessWidget {
                 _buildRiskCard('Disease Risk', 'Medium', 'Moderate threat', Icons.healing, Colors.orange),
                 _buildRiskCard('Market Risk', 'Low', 'Stable prices', Icons.trending_up, Colors.green),
                 _buildRiskCard('Climate Risk', 'Low', 'Favorable conditions', Icons.wb_sunny, Colors.green),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Drought Risk Section
-          _buildSectionCard(
-            title: 'Drought Risk Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRiskDetailCard('Risk Level', 'Medium', 'Occasional dry spells', Colors.orange),
-                _buildRiskDetailCard('Impact Period', 'Jan-Feb, Jun-Sep', 'Critical growth stages', Colors.red),
-                _buildRiskDetailCard('Water Availability', 'Moderate', 'Irrigation needed', Colors.orange),
-                _buildRiskDetailCard('Crop Tolerance', 'Good', 'Drought-resistant varieties', Colors.green),
-                const SizedBox(height: 12),
-                Text(
-                  'Mitigation Strategies:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDetailedRiskAnalysis(context),
+                    icon: const Icon(Icons.analytics),
+                    label: Text('View More', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Plant drought-tolerant varieties (H6213)\n'
-                  '• Implement irrigation systems\n'
-                  '• Use mulching to retain moisture\n'
-                  '• Time planting to avoid dry periods',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Pest Risk Section
-          _buildSectionCard(
-            title: 'Pest Risk Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPestCard('Stalk Borer', 'High', 'Major pest', 'Apply systemic insecticides', Colors.red),
-                _buildPestCard('Armyworm', 'Medium', 'Occasional outbreaks', 'Monitor and spray', Colors.orange),
-                _buildPestCard('Aphids', 'Low', 'Minor pest', 'Natural predators', Colors.green),
-                _buildPestCard('Stem Borer', 'Medium', 'Moderate damage', 'Crop rotation', Colors.orange),
-                const SizedBox(height: 12),
-                Text(
-                  'Pest Management:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Regular field monitoring\n'
-                  '• Integrated pest management (IPM)\n'
-                  '• Use resistant varieties\n'
-                  '• Biological control methods',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Disease Risk Section
-          _buildSectionCard(
-            title: 'Disease Risk Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDiseaseCard('Maize Lethal Necrosis', 'High', 'Viral disease', 'Use resistant varieties', Colors.red),
-                _buildDiseaseCard('Northern Leaf Blight', 'Medium', 'Fungal disease', 'Fungicide application', Colors.orange),
-                _buildDiseaseCard('Rust', 'Low', 'Minor fungal', 'Good air circulation', Colors.green),
-                _buildDiseaseCard('Smut', 'Low', 'Sporadic occurrence', 'Seed treatment', Colors.green),
-                const SizedBox(height: 12),
-                Text(
-                  'Disease Prevention:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Plant disease-resistant varieties\n'
-                  '• Practice crop rotation\n'
-                  '• Maintain field hygiene\n'
-                  '• Timely fungicide application',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Market Risk Section
-          _buildSectionCard(
-            title: 'Market Risk Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMarketRiskCard('Price Volatility', 'Low', 'Stable market', Colors.green),
-                _buildMarketRiskCard('Demand Fluctuation', 'Low', 'Consistent demand', Colors.green),
-                _buildMarketRiskCard('Supply Competition', 'Medium', 'Moderate competition', Colors.orange),
-                _buildMarketRiskCard('Export Market', 'Low', 'Limited exports', Colors.green),
-                const SizedBox(height: 12),
-                Text(
-                  'Market Strategies:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Diversify market outlets\n'
-                  '• Build long-term contracts\n'
-                  '• Monitor price trends\n'
-                  '• Improve product quality',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Climate Risk Section
-          _buildSectionCard(
-            title: 'Climate Risk Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildClimateRiskCard('Temperature Extremes', 'Low', 'Stable temperatures', Colors.green),
-                _buildClimateRiskCard('Rainfall Variability', 'Medium', 'Some unpredictability', Colors.orange),
-                _buildClimateRiskCard('Wind Damage', 'Low', 'Minimal wind risk', Colors.green),
-                _buildClimateRiskCard('Frost Risk', 'None', 'No frost occurrence', Colors.green),
-                const SizedBox(height: 12),
-                Text(
-                  'Climate Adaptation:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Monitor weather forecasts\n'
-                  '• Adjust planting dates\n'
-                  '• Use climate-smart practices\n'
-                  '• Implement water conservation',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Risk Mitigation Section
-          _buildSectionCard(
-            title: 'Comprehensive Risk Mitigation',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMitigationCard(
-                  'Insurance Coverage',
-                  'Consider crop insurance for major risks',
-                  Icons.security,
-                  Colors.blue,
-                ),
-                _buildMitigationCard(
-                  'Diversification',
-                  'Grow multiple crops to spread risk',
-                  Icons.grid_on,
-                  Colors.green,
-                ),
-                _buildMitigationCard(
-                  'Technology Adoption',
-                  'Use modern farming technologies',
-                  Icons.phone_android,
-                  Colors.orange,
-                ),
-                _buildMitigationCard(
-                  'Expert Consultation',
-                  'Seek advice from agricultural experts',
-                  Icons.people,
-                  Colors.purple,
-                ),
-                _buildMitigationCard(
-                  'Monitoring Systems',
-                  'Implement regular monitoring',
-                  Icons.monitor,
-                  Colors.teal,
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDetailedRiskAnalysis(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Detailed Risk Analysis', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Drought Risk Section
+                      _buildSectionCard(
+                        title: 'Drought Risk Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildRiskDetailCard('Risk Level', 'Medium', 'Occasional dry spells', Colors.orange),
+                            _buildRiskDetailCard('Impact Period', 'Jan-Feb, Jun-Sep', 'Critical growth stages', Colors.red),
+                            _buildRiskDetailCard('Water Availability', 'Moderate', 'Irrigation needed', Colors.orange),
+                            _buildRiskDetailCard('Crop Tolerance', 'Good', 'Drought-resistant varieties', Colors.green),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Mitigation Strategies:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Plant drought-tolerant varieties (H6213)\n'
+                              '• Implement irrigation systems\n'
+                              '• Use mulching to retain moisture\n'
+                              '• Time planting to avoid dry periods',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Pest Risk Section
+                      _buildSectionCard(
+                        title: 'Pest Risk Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildPestCard('Stalk Borer', 'High', 'Major pest', 'Apply systemic insecticides', Colors.red),
+                            _buildPestCard('Armyworm', 'Medium', 'Occasional outbreaks', 'Monitor and spray', Colors.orange),
+                            _buildPestCard('Aphids', 'Low', 'Minor pest', 'Natural predators', Colors.green),
+                            _buildPestCard('Stem Borer', 'Medium', 'Moderate damage', 'Crop rotation', Colors.orange),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Pest Management:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Regular field monitoring\n'
+                              '• Integrated pest management (IPM)\n'
+                              '• Use resistant varieties\n'
+                              '• Biological control methods',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Disease Risk Section
+                      _buildSectionCard(
+                        title: 'Disease Risk Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildDiseaseCard('Maize Lethal Necrosis', 'Medium', 'Viral disease', 'Use resistant varieties', Colors.orange),
+                            _buildDiseaseCard('Northern Leaf Blight', 'Low', 'Fungal disease', 'Fungicide application', Colors.green),
+                            _buildDiseaseCard('Common Rust', 'Low', 'Fungal disease', 'Crop rotation', Colors.green),
+                            _buildDiseaseCard('Gray Leaf Spot', 'Medium', 'Fungal disease', 'Proper spacing', Colors.orange),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Disease Management:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Use disease-resistant varieties\n'
+                              '• Practice crop rotation\n'
+                              '• Maintain proper spacing\n'
+                              '• Apply fungicides when needed',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Market Risk Section
+                      _buildSectionCard(
+                        title: 'Market Risk Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildMarketRiskCard('Price Volatility', 'Low', 'Stable market', Colors.green),
+                            _buildMarketRiskCard('Demand Fluctuation', 'Medium', 'Seasonal changes', Colors.orange),
+                            _buildMarketRiskCard('Supply Competition', 'Low', 'Limited competition', Colors.green),
+                            _buildMarketRiskCard('Transport Costs', 'Medium', 'Variable costs', Colors.orange),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Market Strategies:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Diversify market outlets\n'
+                              '• Build long-term contracts\n'
+                              '• Monitor price trends\n'
+                              '• Improve post-harvest handling',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

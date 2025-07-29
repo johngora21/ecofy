@@ -213,7 +213,7 @@ class _TutorialsScreenState extends State<TutorialsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: AppTheme.shadowLight,
@@ -230,8 +230,8 @@ class _TutorialsScreenState extends State<TutorialsScreen> {
             decoration: BoxDecoration(
               color: AppTheme.primaryGreen.withOpacity(0.1),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
             ),
             child: Stack(
@@ -324,7 +324,7 @@ class _TutorialsScreenState extends State<TutorialsScreen> {
                 ),
                 const SizedBox(height: 12),
                 
-                // Tags and Stats
+                // Tags
                 Row(
                   children: [
                     Container(
@@ -358,7 +358,14 @@ class _TutorialsScreenState extends State<TutorialsScreen> {
                         ),
                       ),
                     ),
-                    const Spacer(),
+                  ],
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Stats and Action
+                Row(
+                  children: [
                     Row(
                       children: [
                         Icon(
@@ -376,14 +383,7 @@ class _TutorialsScreenState extends State<TutorialsScreen> {
                         ),
                       ],
                     ),
-                  ],
-                ),
-                
-                const SizedBox(height: 12),
-                
-                // Action Row
-                Row(
-                  children: [
+                    const SizedBox(width: 16),
                     Row(
                       children: [
                         Icon(

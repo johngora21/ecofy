@@ -25,107 +25,146 @@ class MarketPage extends StatelessWidget {
                 _buildInfoRow('Market Demand', 'High demand in urban areas'),
                 _buildInfoRow('Supply Status', 'Moderate supply'),
                 _buildInfoRow('Market Season', 'Peak season (March-July)'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Price Analysis Section
-          _buildSectionCard(
-            title: 'Price Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPriceCard('Last Month', 'KES 2,500', Colors.green),
-                _buildPriceCard('Current Month', 'KES 2,800', Colors.blue),
-                _buildPriceCard('Next Month (Projected)', 'KES 3,000', Colors.orange),
-                const SizedBox(height: 12),
-                Text(
-                  'Price Analysis:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showDetailedMarketAnalysis(context),
+                    icon: const Icon(Icons.analytics),
+                    label: Text('View More', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Prices have increased by 12% due to high demand\n'
-                  '• Expected to rise further in the coming months\n'
-                  '• Good time to sell if you have stored produce\n'
-                  '• Consider timing your harvest for peak prices',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Demand & Supply Section
-          _buildSectionCard(
-            title: 'Demand & Supply Analysis',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildDemandSupplyRow('Demand Level', 'High', Colors.green),
-                _buildDemandSupplyRow('Supply Level', 'Moderate', Colors.orange),
-                _buildDemandSupplyRow('Market Gap', 'Supply Deficit', Colors.red),
-                const SizedBox(height: 12),
-                Text(
-                  'Market Insights:',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• High demand from urban consumers and processors\n'
-                  '• Supply constrained by weather conditions\n'
-                  '• Opportunity for farmers to get premium prices\n'
-                  '• Consider expanding production if conditions allow',
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Market Insights Section
-          _buildSectionCard(
-            title: 'Market Insights',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInsightCard(
-                  'Export Opportunities',
-                  'Growing demand in neighboring countries',
-                  Icons.trending_up,
-                  Colors.green,
-                ),
-                _buildInsightCard(
-                  'Processing Industry',
-                  'High demand from flour mills and animal feed',
-                  Icons.factory,
-                  Colors.blue,
-                ),
-                _buildInsightCard(
-                  'Consumer Trends',
-                  'Increasing preference for quality maize',
-                  Icons.people,
-                  Colors.orange,
-                ),
-                _buildInsightCard(
-                  'Storage Opportunities',
-                  'Good prices expected in off-season',
-                  Icons.warehouse,
-                  Colors.purple,
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showDetailedMarketAnalysis(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Detailed Market Analysis', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Price Analysis Section
+                      _buildSectionCard(
+                        title: 'Price Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildPriceCard('Last Month', 'KES 2,500', Colors.green),
+                            _buildPriceCard('Current Month', 'KES 2,800', Colors.blue),
+                            _buildPriceCard('Next Month (Projected)', 'KES 3,000', Colors.orange),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Price Analysis:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• Prices have increased by 12% due to high demand\n'
+                              '• Expected to rise further in the coming months\n'
+                              '• Good time to sell if you have stored produce\n'
+                              '• Consider timing your harvest for peak prices',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Demand & Supply Section
+                      _buildSectionCard(
+                        title: 'Demand & Supply Analysis',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildDemandSupplyRow('Demand Level', 'High', Colors.green),
+                            _buildDemandSupplyRow('Supply Level', 'Moderate', Colors.orange),
+                            _buildDemandSupplyRow('Market Gap', 'Supply Deficit', Colors.red),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Market Insights:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '• High demand from urban consumers and processors\n'
+                              '• Supply constrained by weather conditions\n'
+                              '• Opportunity for farmers to get premium prices\n'
+                              '• Consider expanding production if conditions allow',
+                              style: GoogleFonts.poppins(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Market Insights Section
+                      _buildSectionCard(
+                        title: 'Market Insights',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInsightCard('Consumer Trends', 'Growing preference for organic', Icons.trending_up, Colors.green),
+                            _buildInsightCard('Export Opportunities', 'Regional market demand', Icons.flight_takeoff, Colors.blue),
+                            _buildInsightCard('Processing Industry', 'Value addition opportunities', Icons.factory, Colors.orange),
+                            _buildInsightCard('Technology Impact', 'Digital market platforms', Icons.phone_android, Colors.purple),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -168,21 +207,29 @@ class MarketPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.primaryGreen,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryGreen,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
