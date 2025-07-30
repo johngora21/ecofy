@@ -18,7 +18,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _selectedGender = 'Male';
   String? _selectedImagePath;
 
-  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
+  final List<String> _genderOptions = ['Male', 'Female',];
 
   @override
   void dispose() {
