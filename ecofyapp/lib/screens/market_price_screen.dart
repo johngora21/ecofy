@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../core/theme/app_theme.dart';
 
 class MarketPriceScreen extends StatefulWidget {
@@ -76,6 +77,106 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
     {'id': 'news', 'label': 'News'},
   ];
 
+  // Mock data for price trends
+  Map<String, List<Map<String, dynamic>>> _priceData = {
+    'Maize': [
+      {'date': 'Jan', 'price': 1200.0, 'volume': 1500.0},
+      {'date': 'Feb', 'price': 1350.0, 'volume': 1800.0},
+      {'date': 'Mar', 'price': 1420.0, 'volume': 2000.0},
+      {'date': 'Apr', 'price': 1380.0, 'volume': 1900.0},
+      {'date': 'May', 'price': 1550.0, 'volume': 2200.0},
+      {'date': 'Jun', 'price': 1680.0, 'volume': 2400.0},
+    ],
+    'Rice': [
+      {'date': 'Jan', 'price': 2800.0, 'volume': 800.0},
+      {'date': 'Feb', 'price': 2950.0, 'volume': 900.0},
+      {'date': 'Mar', 'price': 3100.0, 'volume': 1000.0},
+      {'date': 'Apr', 'price': 3250.0, 'volume': 1100.0},
+      {'date': 'May', 'price': 3400.0, 'volume': 1200.0},
+      {'date': 'Jun', 'price': 3550.0, 'volume': 1300.0},
+    ],
+    'Beans': [
+      {'date': 'Jan', 'price': 1800.0, 'volume': 600.0},
+      {'date': 'Feb', 'price': 1950.0, 'volume': 700.0},
+      {'date': 'Mar', 'price': 2100.0, 'volume': 800.0},
+      {'date': 'Apr', 'price': 2250.0, 'volume': 900.0},
+      {'date': 'May', 'price': 2400.0, 'volume': 1000.0},
+      {'date': 'Jun', 'price': 2550.0, 'volume': 1100.0},
+    ],
+  };
+
+  // Mock data for regional comparison
+  Map<String, Map<String, double>> _regionalData = {
+    'Maize': {
+      'Arusha': 1680,
+      'Dar es Salaam': 1750,
+      'Dodoma': 1620,
+      'Mbeya': 1580,
+      'Morogoro': 1650,
+      'Mwanza': 1700,
+      'Tanga': 1630,
+      'Iringa': 1600,
+      'Tabora': 1550,
+      'Kigoma': 1570,
+    },
+    'Rice': {
+      'Arusha': 3550,
+      'Dar es Salaam': 3800,
+      'Dodoma': 3400,
+      'Mbeya': 3350,
+      'Morogoro': 3500,
+      'Mwanza': 3650,
+      'Tanga': 3450,
+      'Iringa': 3400,
+      'Tabora': 3300,
+      'Kigoma': 3350,
+    },
+    'Beans': {
+      'Arusha': 2550,
+      'Dar es Salaam': 2700,
+      'Dodoma': 2450,
+      'Mbeya': 2400,
+      'Morogoro': 2500,
+      'Mwanza': 2600,
+      'Tanga': 2480,
+      'Iringa': 2420,
+      'Tabora': 2350,
+      'Kigoma': 2380,
+    },
+  };
+
+  // Mock news data
+  final List<Map<String, dynamic>> _newsData = [
+    {
+      'title': 'Maize Prices Surge 15% in Arusha Region',
+      'summary': 'Strong demand and limited supply drive prices up in the northern region.',
+      'date': '2024-06-15',
+      'category': 'Price Alert',
+      'impact': 'High',
+    },
+    {
+      'title': 'Government Announces New Agricultural Subsidies',
+      'summary': 'Farmers to receive support for improved seeds and fertilizers.',
+      'date': '2024-06-14',
+      'category': 'Policy',
+      'impact': 'Medium',
+    },
+    {
+      'title': 'Rice Production Expected to Increase by 20%',
+      'summary': 'Favorable weather conditions boost rice cultivation across Tanzania.',
+      'date': '2024-06-13',
+      'category': 'Production',
+      'impact': 'Medium',
+    },
+    {
+      'title': 'Export Demand Drives Bean Prices Higher',
+      'summary': 'International markets show strong interest in Tanzanian beans.',
+      'date': '2024-06-12',
+      'category': 'Market Trend',
+      'impact': 'High',
+    },
+  ];
+
   Widget _buildTabButton(String id, String label) {
     final isSelected = _activeTab == id;
     
@@ -108,12 +209,16 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
     );
   }
 
-  Widget _buildCropPricesTab() {
+  Widget _buildPriceChart() {
+    final data = _priceData[_selectedCrop] ?? [];
+    if (data.isEmpty) return const SizedBox.shrink();
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      height: 300,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: AppTheme.shadowLight,
@@ -122,28 +227,561 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
           ),
         ],
       ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 1.5,
+          child: LineChart(
+        LineChartData(
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: true,
+            horizontalInterval: 200,
+            verticalInterval: 1,
+            getDrawingHorizontalLine: (value) {
+              return FlLine(
+                color: AppTheme.borderLight,
+                strokeWidth: 1,
+              );
+            },
+            getDrawingVerticalLine: (value) {
+              return FlLine(
+                color: AppTheme.borderLight,
+                strokeWidth: 1,
+              );
+            },
+          ),
+          titlesData: FlTitlesData(
+            show: true,
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                interval: 1,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  if (value.toInt() >= 0 && value.toInt() < data.length) {
+                    return SideTitleWidget(
+                      axisSide: meta.axisSide,
+                      child: Text(
+                        data[value.toInt()]['date'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    );
+                  }
+                  return const Text('');
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 200,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  return Text(
+                    '${value.toInt()}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                    ),
+                  );
+                },
+                reservedSize: 42,
+              ),
+            ),
+          ),
+          borderData: FlBorderData(
+            show: true,
+            border: Border.all(color: AppTheme.borderLight),
+          ),
+          minX: 0,
+          maxX: (data.length - 1).toDouble(),
+          minY: 0,
+          maxY: data.map((e) => e['price'] as double).reduce((a, b) => a > b ? a : b) + 200,
+          lineBarsData: [
+            LineChartBarData(
+              spots: data.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value['price'].toDouble());
+              }).toList(),
+              isCurved: true,
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryGreen, AppTheme.primaryGreen.withOpacity(0.3)],
+              ),
+              barWidth: 3,
+              isStrokeCapRound: true,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, percent, barData, index) {
+                  return FlDotCirclePainter(
+                    radius: 4,
+                    color: AppTheme.primaryGreen,
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  );
+                },
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryGreen.withOpacity(0.3),
+                    AppTheme.primaryGreen.withOpacity(0.1),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ],
+        ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVolumeChart() {
+    final data = _priceData[_selectedCrop] ?? [];
+    if (data.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowLight,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 1.5,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: data.map((e) => e['volume'] as double).reduce((a, b) => a > b ? a : b) + 200,
+              barTouchData: BarTouchData(enabled: false),
+              titlesData: FlTitlesData(
+                show: true,
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      if (value.toInt() >= 0 && value.toInt() < data.length) {
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            data[value.toInt()]['date'],
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 42,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      return Text(
+                        '${value.toInt()}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: AppTheme.borderLight),
+              ),
+              barGroups: data.asMap().entries.map((entry) {
+                return BarChartGroupData(
+                  x: entry.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: entry.value['volume'].toDouble(),
+                      color: AppTheme.secondaryBlue,
+                      width: 20,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        topRight: Radius.circular(4),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+              gridData: FlGridData(
+                show: true,
+                horizontalInterval: 200,
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: AppTheme.borderLight,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegionalComparisonChart() {
+    final regionalPrices = _regionalData[_selectedCrop] ?? {};
+    if (regionalPrices.isEmpty) return const SizedBox.shrink();
+
+    final sortedData = regionalPrices.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      height: 400,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.shadowLight,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 1.5,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: sortedData.first.value + 100,
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  tooltipBgColor: AppTheme.primaryGreen,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    return BarTooltipItem(
+                      '${sortedData[group.x].key}\n${rod.toY.toInt()} TZS',
+                      const TextStyle(color: Colors.white),
+                    );
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      if (value.toInt() >= 0 && value.toInt() < sortedData.length) {
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            sortedData[value.toInt()].key,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 42,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      return Text(
+                        '${value.toInt()}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: AppTheme.borderLight),
+              ),
+              barGroups: sortedData.asMap().entries.map((entry) {
+                final isSelectedLocation = entry.value.key == _selectedLocation;
+                return BarChartGroupData(
+                  x: entry.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: entry.value.value,
+                      color: isSelectedLocation ? AppTheme.primaryGreen : AppTheme.secondaryBlue,
+                      width: 25,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        topRight: Radius.circular(4),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+              gridData: FlGridData(
+                show: true,
+                horizontalInterval: 200,
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: AppTheme.borderLight,
+                    strokeWidth: 1,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCropPricesTab() {
+    final currentPrice = _priceData[_selectedCrop]?.last['price'] ?? 0;
+    final previousPrice = _priceData[_selectedCrop]?.elementAt(_priceData[_selectedCrop]!.length - 2)['price'] ?? 0;
+    final priceChange = currentPrice - previousPrice;
+    final priceChangePercent = previousPrice > 0 ? (priceChange / previousPrice * 100) : 0;
+
+    return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.trending_up, color: AppTheme.primaryGreen, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'Crop Prices',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
+          // Price Summary Card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowLight,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.trending_up, color: AppTheme.primaryGreen, size: 24),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Current Price',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text(
+                      '${currentPrice.toInt()} TZS',
+                      style: GoogleFonts.poppins(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: priceChange >= 0 ? AppTheme.successGreen : AppTheme.errorRed,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            priceChange >= 0 ? Icons.trending_up : Icons.trending_down,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${priceChangePercent.abs().toStringAsFixed(1)}%',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'per $_selectedUnit in $_selectedLocation',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+
+          // Price Trend Chart
           Text(
-            'Price trends and market analysis for $_selectedCrop in $_selectedLocation.',
+            'Price Trend',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildPriceChart(),
+          const SizedBox(height: 20),
+
+          // Volume Chart
+          Text(
+            'Trading Volume',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildVolumeChart(),
+          const SizedBox(height: 20),
+
+          // Market Statistics
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowLight,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Market Statistics',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard('Highest Price', '${_priceData[_selectedCrop]?.map((e) => e['price'] as double).reduce((a, b) => a > b ? a : b).toInt() ?? 0} TZS', Icons.trending_up, AppTheme.successGreen),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard('Lowest Price', '${_priceData[_selectedCrop]?.map((e) => e['price'] as double).reduce((a, b) => a < b ? a : b).toInt() ?? 0} TZS', Icons.trending_down, AppTheme.errorRed),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard('Average Price', '${_priceData[_selectedCrop] != null ? (_priceData[_selectedCrop]!.map((e) => e['price'] as double).reduce((a, b) => a + b) / _priceData[_selectedCrop]!.length).toInt() : 0} TZS', Icons.analytics, AppTheme.secondaryBlue),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard('Total Volume', '${_priceData[_selectedCrop]?.map((e) => e['volume'] as double).reduce((a, b) => a + b).toInt() ?? 0} kg', Icons.inventory, AppTheme.warningYellow),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
               color: AppTheme.textSecondary,
             ),
           ),
@@ -153,42 +791,92 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Widget _buildComparisonTab() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.shadowLight,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.compare_arrows, color: AppTheme.secondaryBlue, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'Regional Comparison',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          // Regional Comparison Chart
           Text(
-            'Compare $_selectedCrop prices across different regions.',
+            'Regional Price Comparison',
             style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppTheme.textSecondary,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildRegionalComparisonChart(),
+          const SizedBox(height: 20),
+
+          // Regional Price List
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowLight,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Price by Region',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...(_regionalData[_selectedCrop] ?? {}).entries.map((entry) {
+                  final isSelected = entry.key == _selectedLocation;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppTheme.primaryGreen.withOpacity(0.1) : AppTheme.surfaceLight,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? AppTheme.primaryGreen : AppTheme.borderLight,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          color: isSelected ? AppTheme.primaryGreen : AppTheme.textSecondary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            entry.key,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${entry.value.toInt()} TZS',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
             ),
           ),
         ],
@@ -197,47 +885,115 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Widget _buildNewsTab() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.shadowLight,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.article, color: AppTheme.successGreen, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'Market News',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
           Text(
-            'Latest agricultural market news and updates.',
+            'Market News & Updates',
             style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppTheme.textSecondary,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
             ),
           ),
+          const SizedBox(height: 12),
+          ..._newsData.map((news) => Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.shadowLight,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getImpactColor(news['impact']),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        news['category'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getImpactColor(news['impact']).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        news['impact'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: _getImpactColor(news['impact']),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      news['date'],
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  news['title'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  news['summary'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          )).toList(),
         ],
       ),
     );
+  }
+
+  Color _getImpactColor(String impact) {
+    switch (impact.toLowerCase()) {
+      case 'high':
+        return AppTheme.errorRed;
+      case 'medium':
+        return AppTheme.warningYellow;
+      case 'low':
+        return AppTheme.successGreen;
+      default:
+        return AppTheme.textSecondary;
+    }
   }
 
   Widget _buildTabContent() {

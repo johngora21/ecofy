@@ -63,7 +63,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ];
 
   final List<String> _titles = [
-    'Dashboard',
+    'Ecofy',
     'Marketplace',
     'Farms',
     'Resources',
