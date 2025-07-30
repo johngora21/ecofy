@@ -557,19 +557,14 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
-        title: Text(
-          'Add Farm',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryGreen,
+        foregroundColor: Colors.white,
+        title: Text('Add Farm', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
