@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../core/theme/app_theme.dart';
+import '../services/api_service.dart';
+import '../data/tanzania_crops.dart';
+import '../data/tanzania_regions.dart';
 
 class MarketPriceScreen extends StatefulWidget {
   const MarketPriceScreen({super.key});
@@ -17,28 +20,15 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   String _selectedLocation = 'Arusha';
   String _selectedPeriod = '3 Months';
 
-  final List<String> _crops = [
-    'Maize',
-    'Rice',
-    'Beans',
-    'Wheat',
-    'Sorghum',
-    'Millet',
-    'Cassava',
-    'Sweet Potato',
-    'Irish Potato',
-    'Tomato',
-    'Onion',
-    'Cabbage',
-    'Carrot',
-    'Lettuce',
-    'Banana',
-    'Pineapple',
-    'Tea',
-    'Coffee',
-    'Cotton',
-    'Tobacco',
-  ];
+  // Loading states
+  bool _isLoading = false;
+  String? _error;
+
+  // Real data from backend
+  List<Map<String, dynamic>> _crops = [];
+  List<Map<String, dynamic>> _marketPrices = [];
+  List<Map<String, dynamic>> _marketTrends = [];
+  Map<String, dynamic>? _currentCropData;
 
   final List<String> _units = [
     'Kilogram (kg)',
@@ -76,6 +66,132 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
     {'id': 'comparison', 'label': 'Comparison'},
     {'id': 'news', 'label': 'News'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      // Load crops from backend
+      final cropsData = await ApiService.getCrops();
+      setState(() {
+        _crops = cropsData;
+        if (_crops.isNotEmpty) {
+          _selectedCrop = _crops.first['name'];
+        }
+      });
+
+      // Load market prices
+      await _loadMarketPrices();
+      
+      // Load market trends for selected crop
+      await _loadMarketTrends();
+
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMarketPrices() async {
+    try {
+      final marketData = await ApiService.getMarketPrices();
+      setState(() {
+        _marketPrices = marketData['data'] ?? [];
+      });
+    } catch (e) {
+      print('Error loading market prices: $e');
+    }
+  }
+
+  Future<void> _loadMarketTrends() async {
+    if (_selectedCrop.isEmpty) return;
+
+    try {
+      // Find crop ID for selected crop
+      final selectedCropData = _crops.firstWhere(
+        (crop) => crop['name'] == _selectedCrop,
+        orElse: () => {'id': ''},
+      );
+
+      if (selectedCropData['id'] != null && selectedCropData['id'].isNotEmpty) {
+        final trendsData = await ApiService.getMarketTrends(
+          selectedCropData['id'],
+          period: _getPeriodForApi(),
+        );
+        setState(() {
+          _marketTrends = trendsData;
+        });
+      }
+    } catch (e) {
+      print('Error loading market trends: $e');
+    }
+  }
+
+  String _getPeriodForApi() {
+    switch (_selectedPeriod) {
+      case '1 Month':
+        return 'month';
+      case '3 Months':
+        return 'month';
+      case '6 Months':
+        return 'month';
+      case '1 Year':
+        return 'year';
+      case '2 Years':
+        return 'year';
+      case '5 Years':
+        return 'year';
+      default:
+        return 'month';
+    }
+  }
+
+  void _onCropChanged(String? newValue) async {
+    if (newValue != null && newValue != _selectedCrop) {
+      setState(() {
+        _selectedCrop = newValue;
+      });
+      await _loadMarketTrends();
+    }
+  }
+
+  void _onLocationChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        _selectedLocation = newValue;
+      });
+    }
+  }
+
+  void _onPeriodChanged(String? newValue) async {
+    if (newValue != null && newValue != _selectedPeriod) {
+      setState(() {
+        _selectedPeriod = newValue;
+      });
+      await _loadMarketTrends();
+    }
+  }
+
+  Map<String, dynamic>? _getCurrentCropMarketData() {
+    return _marketPrices.firstWhere(
+      (price) => price['crop_name'] == _selectedCrop,
+      orElse: () => {},
+    );
+  }
 
   // Mock data for price trends
   Map<String, List<Map<String, dynamic>>> _priceData = {
@@ -210,8 +326,26 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Widget _buildPriceChart() {
-    final data = _priceData[_selectedCrop] ?? [];
-    if (data.isEmpty) return const SizedBox.shrink();
+    if (_marketTrends.isEmpty) {
+      return Container(
+        height: 300,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadowLight,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Text('No price trend data available'),
+        ),
+      );
+    }
 
     return Container(
       height: 300,
@@ -265,11 +399,12 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                 reservedSize: 30,
                 interval: 1,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  if (value.toInt() >= 0 && value.toInt() < data.length) {
+                  if (value.toInt() >= 0 && value.toInt() < _marketTrends.length) {
+                    final date = _marketTrends[value.toInt()]['date'] ?? '';
                     return SideTitleWidget(
                       axisSide: meta.axisSide,
                       child: Text(
-                        data[value.toInt()]['date'],
+                        date,
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
@@ -303,13 +438,13 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
             border: Border.all(color: AppTheme.borderLight),
           ),
           minX: 0,
-          maxX: (data.length - 1).toDouble(),
+          maxX: (_marketTrends.length - 1).toDouble(),
           minY: 0,
-          maxY: data.map((e) => e['price'] as double).reduce((a, b) => a > b ? a : b) + 200,
+          maxY: _marketTrends.map((e) => (e['price'] as num).toDouble()).reduce((a, b) => a > b ? a : b) + 200,
           lineBarsData: [
             LineChartBarData(
-              spots: data.asMap().entries.map((entry) {
-                return FlSpot(entry.key.toDouble(), entry.value['price'].toDouble());
+              spots: _marketTrends.asMap().entries.map((entry) {
+                return FlSpot(entry.key.toDouble(), (entry.value['price'] as num).toDouble());
               }).toList(),
               isCurved: true,
               gradient: LinearGradient(
@@ -580,10 +715,49 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Widget _buildCropPricesTab() {
-    final currentPrice = _priceData[_selectedCrop]?.last['price'] ?? 0;
-    final previousPrice = _priceData[_selectedCrop]?.elementAt(_priceData[_selectedCrop]!.length - 2)['price'] ?? 0;
-    final priceChange = currentPrice - previousPrice;
-    final priceChangePercent = previousPrice > 0 ? (priceChange / previousPrice * 100) : 0;
+    final currentCropData = _getCurrentCropMarketData();
+    final currentPrice = currentCropData?['current_price'] ?? 0.0;
+    final percentChange = currentCropData?['percent_change'] ?? 0.0;
+
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error, color: AppTheme.errorRed, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading data',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: AppTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadInitialData,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       child: Column(
@@ -635,20 +809,20 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: priceChange >= 0 ? AppTheme.successGreen : AppTheme.errorRed,
+                        color: percentChange >= 0 ? AppTheme.successGreen : AppTheme.errorRed,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            priceChange >= 0 ? Icons.trending_up : Icons.trending_down,
+                            percentChange >= 0 ? Icons.trending_up : Icons.trending_down,
                             color: Colors.white,
                             size: 16,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${priceChangePercent.abs().toStringAsFixed(1)}%',
+                            '${percentChange.abs().toStringAsFixed(1)}%',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -728,11 +902,21 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard('Highest Price', '${_priceData[_selectedCrop]?.map((e) => e['price'] as double).reduce((a, b) => a > b ? a : b).toInt() ?? 0} TZS', Icons.trending_up, AppTheme.successGreen),
+                      child: _buildStatCard(
+                        'Current Price', 
+                        '${currentPrice.toInt()} TZS', 
+                        Icons.trending_up, 
+                        AppTheme.successGreen
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatCard('Lowest Price', '${_priceData[_selectedCrop]?.map((e) => e['price'] as double).reduce((a, b) => a < b ? a : b).toInt() ?? 0} TZS', Icons.trending_down, AppTheme.errorRed),
+                      child: _buildStatCard(
+                        'Price Change', 
+                        '${percentChange.toStringAsFixed(1)}%', 
+                        Icons.trending_up, 
+                        percentChange >= 0 ? AppTheme.successGreen : AppTheme.errorRed
+                      ),
                     ),
                   ],
                 ),
@@ -740,11 +924,21 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard('Average Price', '${_priceData[_selectedCrop] != null ? (_priceData[_selectedCrop]!.map((e) => e['price'] as double).reduce((a, b) => a + b) / _priceData[_selectedCrop]!.length).toInt() : 0} TZS', Icons.analytics, AppTheme.secondaryBlue),
+                      child: _buildStatCard(
+                        'Market Status', 
+                        percentChange >= 0 ? 'Rising' : 'Falling', 
+                        Icons.analytics, 
+                        AppTheme.secondaryBlue
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildStatCard('Total Volume', '${_priceData[_selectedCrop]?.map((e) => e['volume'] as double).reduce((a, b) => a + b).toInt() ?? 0} kg', Icons.inventory, AppTheme.warningYellow),
+                      child: _buildStatCard(
+                        'Recommendation', 
+                        currentCropData?['recommendation']?.split('.')[0] ?? 'No data', 
+                        Icons.lightbulb, 
+                        AppTheme.warningYellow
+                      ),
                     ),
                   ],
                 ),
@@ -1047,8 +1241,8 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                 Text(
                   'Market Price',
                   style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
@@ -1078,7 +1272,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                           isExpanded: true,
                           underline: Container(),
                           icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.primaryGreen),
-                          items: _crops.map((crop) {
+                          items: TanzaniaCrops.getCropNames().map((crop) {
                             return DropdownMenuItem<String>(
                               value: crop,
                               child: Text(
@@ -1091,13 +1285,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                               ),
                             );
                           }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                _selectedCrop = newValue;
-                              });
-                            }
-                          },
+                          onChanged: _onCropChanged,
                         ),
                       ),
                     ),
@@ -1159,7 +1347,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                           isExpanded: true,
                           underline: Container(),
                           icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.primaryGreen),
-                          items: _locations.map((location) {
+                          items: TanzaniaRegions.getRegionNames().map((location) {
                             return DropdownMenuItem<String>(
                               value: location,
                               child: Text(
@@ -1172,13 +1360,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                               ),
                             );
                           }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                _selectedLocation = newValue;
-                              });
-                            }
-                          },
+                          onChanged: _onLocationChanged,
                         ),
                       ),
                     ),
@@ -1210,13 +1392,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                               ),
                             );
                           }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                _selectedPeriod = newValue;
-                              });
-                            }
-                          },
+                          onChanged: _onPeriodChanged,
                         ),
                       ),
                     ),

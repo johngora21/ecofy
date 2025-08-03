@@ -30,74 +30,18 @@ class _FarmsScreenState extends State<FarmsScreen> {
       _error = null;
     });
 
-    // Show sample farms for demonstration
-    await Future.delayed(const Duration(milliseconds: 500)); // Simulate loading
-    
-    setState(() {
-      _farms = [
-        {
-          'id': 1,
-          'name': 'Green Valley Farm',
-          'location': 'Nairobi, Kenya',
-          'size_in_acres': 25.5,
-          'description': 'Mixed crop farm with modern irrigation',
-          'crops': ['Maize', 'Beans', 'Tomatoes'],
-          'labor': 4,
-          'equipment': 'Tractor, Irrigation System, Storage',
-          'budget': 8000.0,
-          'time_management': 'Full-time farming',
-        },
-        {
-          'id': 2,
-          'name': 'Sunrise Agricultural',
-          'location': 'Kisumu, Kenya',
-          'size_in_acres': 18.2,
-          'description': 'Rice and sugarcane plantation',
-          'crops': ['Rice', 'Sugarcane'],
-          'labor': 6,
-          'equipment': 'Harvester, Water Pump, Processing Unit',
-          'budget': 12000.0,
-          'time_management': 'Seasonal intensive',
-        },
-        {
-          'id': 3,
-          'name': 'Highland Farms',
-          'location': 'Eldoret, Kenya',
-          'size_in_acres': 32.0,
-          'description': 'Large scale grain production',
-          'crops': ['Wheat', 'Barley', 'Potatoes'],
-          'labor': 8,
-          'equipment': 'Combine Harvester, Plow, Seed Drill',
-          'budget': 15000.0,
-          'time_management': 'Year-round operation',
-        },
-        {
-          'id': 4,
-          'name': 'Organic Valley',
-          'location': 'Nakuru, Kenya',
-          'size_in_acres': 15.8,
-          'description': 'Organic vegetable and herb farm',
-          'crops': ['Vegetables', 'Herbs'],
-          'labor': 3,
-          'equipment': 'Greenhouse, Drip Irrigation, Compost',
-          'budget': 6000.0,
-          'time_management': 'Part-time with family',
-        },
-        {
-          'id': 5,
-          'name': 'Mountain View Farm',
-          'location': 'Kericho, Kenya',
-          'size_in_acres': 28.5,
-          'description': 'Tea and coffee estate',
-          'crops': ['Tea', 'Coffee', 'Avocado'],
-          'labor': 12,
-          'equipment': 'Tea Processor, Coffee Mill, Transport',
-          'budget': 20000.0,
-          'time_management': 'Commercial scale',
-        },
-      ];
-      _isLoading = false;
-    });
+    try {
+      final farmsData = await ApiService.getFarms();
+      setState(() {
+        _farms = farmsData;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   Widget _buildFarmCard(Map<String, dynamic> farm) {

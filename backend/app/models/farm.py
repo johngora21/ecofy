@@ -15,6 +15,7 @@ class Farm(Base):
     size = Column(String, nullable=False)
     topography = Column(String, nullable=True)
     coordinates = Column(JSON, nullable=False)  # Stores lat and lng
+    farm_boundary = Column(JSON, nullable=True)  # Stores farm boundary coordinates
     soil_params = Column(JSON, nullable=False)  # Stores soil parameters
     image = Column(String, nullable=True)
     crop_history = Column(JSON, nullable=False, default=list)  # Stores list of crop history

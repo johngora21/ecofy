@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/theme/app_theme.dart';
 import '../services/api_service.dart';
+import '../data/tanzania_crops.dart';
 
 class EditFarmScreen extends StatefulWidget {
   final Map<String, dynamic> farm;
@@ -15,7 +16,6 @@ class EditFarmScreen extends StatefulWidget {
 class _EditFarmScreenState extends State<EditFarmScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _locationController = TextEditingController();
   final _sizeController = TextEditingController();
   final _descriptionController = TextEditingController();
   
@@ -28,13 +28,7 @@ class _EditFarmScreenState extends State<EditFarmScreen> {
   List<String> _selectedCrops = [];
   bool _isLoading = false;
 
-  final List<String> _availableCrops = [
-    'Maize', 'Rice', 'Beans', 'Tomatoes', 'Potatoes', 'Cabbage', 'Carrots',
-    'Onions', 'Peppers', 'Cucumber', 'Lettuce', 'Spinach', 'Kale',
-    'Wheat', 'Barley', 'Sorghum', 'Millet', 'Soybeans', 'Peas',
-    'Sweet Potatoes', 'Cassava', 'Yams', 'Bananas', 'Pineapples',
-    'Coffee', 'Tea', 'Sugarcane', 'Cotton', 'Tobacco', 'Vanilla'
-  ];
+  final List<String> _availableCrops = TanzaniaCrops.getCropNames();
 
   @override
   void initState() {
@@ -44,7 +38,6 @@ class _EditFarmScreenState extends State<EditFarmScreen> {
 
   void _initializeControllers() {
     _nameController.text = widget.farm['name'] ?? '';
-    _locationController.text = widget.farm['location'] ?? '';
     _sizeController.text = widget.farm['size_in_acres']?.toString() ?? '';
     _descriptionController.text = widget.farm['description'] ?? '';
     
@@ -101,25 +94,6 @@ class _EditFarmScreenState extends State<EditFarmScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter farm name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  labelText: 'Location *',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  filled: true,
-                  fillColor: AppTheme.surfaceLight,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter location';
                   }
                   return null;
                 },
@@ -361,7 +335,6 @@ class _EditFarmScreenState extends State<EditFarmScreen> {
     try {
       await ApiService.updateFarm(widget.farm['id'].toString(), {
         'name': _nameController.text,
-        'location': _locationController.text,
         'size_in_acres': double.tryParse(_sizeController.text) ?? 0.0,
         'description': _descriptionController.text,
         'crops': _selectedCrops,
@@ -401,7 +374,6 @@ class _EditFarmScreenState extends State<EditFarmScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _locationController.dispose();
     _sizeController.dispose();
     _descriptionController.dispose();
     _laborController.dispose();

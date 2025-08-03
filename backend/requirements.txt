@@ -17,14 +17,17 @@ setuptools>=65.5.1
 wheel>=0.38.0
 numpy>=1.26.0
 pandas>=2.0.0
+openpyxl>=3.1.0
 openmeteo-requests>=1.1.0
 requests-cache>=1.0.0
 retry-requests>=2.0.0
 
-# Gemini AI dependencies
+# AI dependencies
 google-genai
+openai>=1.0.0
 librosa>=0.10.1
 soundfile>=0.12.1
+scikit-learn>=1.3.0
 pydub>=0.25.1
 
 # Weather API dependencies

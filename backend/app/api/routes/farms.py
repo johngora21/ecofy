@@ -7,7 +7,7 @@ from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.farm import Farm
 from app.models.user import User
-from app.schemas.farm import FarmCreate, FarmResponse, CropHistory, Coordinates, SoilParameters
+from app.schemas.farm import FarmCreate, FarmResponse, CropHistory, Coordinates, SoilParameters, FarmBoundary
 from app.api.routes.external import get_satellite_soil_data
 
 router = APIRouter()
@@ -379,4 +379,56 @@ async def upload_farm_image(
     db.add(farm)
     db.commit()
     
-    return {"image_url": image_url} 
+    return {"image_url": image_url}
+
+
+@router.post("/{farm_id}/boundary", response_model=FarmResponse)
+async def update_farm_boundary(
+    farm_id: str,
+    boundary: List[FarmBoundary],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update farm boundary coordinates.
+    """
+    farm = db.query(Farm).filter(Farm.id == farm_id, Farm.user_id == current_user.id).first()
+    if not farm:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Farm not found"
+        )
+    
+    # Convert FarmBoundary objects to dict format for storage
+    boundary_data = [{"lat": point.lat, "lng": point.lng} for point in boundary]
+    
+    farm.farm_boundary = boundary_data
+    db.add(farm)
+    db.commit()
+    db.refresh(farm)
+    
+    return farm
+
+
+@router.get("/{farm_id}/boundary", response_model=List[FarmBoundary])
+async def get_farm_boundary(
+    farm_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get farm boundary coordinates.
+    """
+    farm = db.query(Farm).filter(Farm.id == farm_id, Farm.user_id == current_user.id).first()
+    if not farm:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Farm not found"
+        )
+    
+    if not farm.farm_boundary:
+        return []
+    
+    # Convert stored boundary data back to FarmBoundary objects
+    boundary = [FarmBoundary(lat=point["lat"], lng=point["lng"]) for point in farm.farm_boundary]
+    return boundary 

@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     ISDA_USERNAME: str = os.getenv("ISDA_USERNAME", "lugata619@gmail.com")
     ISDA_PASSWORD: str = os.getenv("ISDA_PASSWORD", "gnt6192002")
     
+    # OpenAI API
+    OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
+    
+    # WhatsApp/Beem Africa API
+    BEEM_API_KEY: Optional[str] = os.getenv("BEEM_API_KEY")
+    BEEM_SECRET_KEY: Optional[str] = os.getenv("BEEM_SECRET_KEY")
+    WHATSAPP_FROM_NUMBER: Optional[str] = os.getenv("WHATSAPP_FROM_NUMBER")
+    
     class Config:
         case_sensitive = True
 

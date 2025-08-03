@@ -6,6 +6,10 @@ class Coordinates(BaseModel):
     lat: str
     lng: str
 
+class FarmBoundary(BaseModel):
+    lat: float
+    lng: float
+
 class SoilParameters(BaseModel):
     moisture: str
     organic_carbon: str
@@ -28,6 +32,7 @@ class FarmBase(BaseModel):
     size: str
     topography: Optional[str] = None
     coordinates: Coordinates
+    farm_boundary: Optional[List[FarmBoundary]] = None
     soil_params: Optional[SoilParameters] = None
    
 
@@ -37,6 +42,7 @@ class FarmCreate(BaseModel):
     size: str
     topography: Optional[str] = None
     coordinates: Coordinates
+    farm_boundary: Optional[List[FarmBoundary]] = None
  
 
 class FarmResponse(FarmBase):

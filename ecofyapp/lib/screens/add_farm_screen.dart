@@ -4,6 +4,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
+import 'dart:math';
 import '../core/theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../data/tanzania_crops.dart';
@@ -70,7 +72,14 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   // Current location
   LatLng? _currentLocation;
   LatLng? _farmCenter;
+  LatLng? _currentMapPosition; // Track current map position for real-time coordinates
   String _exactLocationName = '';
+  
+  // GPS tracking for farm boundary
+  StreamSubscription<Position>? _positionStream;
+  bool _isTrackingBoundary = false;
+  Timer? _boundaryTrackingTimer;
+  LatLng? _currentGpsPosition; // Track current GPS position during boundary mapping
 
   final List<String> _availableCrops = TanzaniaCrops.getCropNames();
 
@@ -80,10 +89,18 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     _getCurrentLocation();
   }
 
+
+
   Future<void> _getCurrentLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location services are disabled. Please enable GPS.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
         return;
       }
 
@@ -91,11 +108,23 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permission denied. Cannot get current location.'),
+              backgroundColor: Colors.red,
+            ),
+          );
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission permanently denied. Please enable in settings.'),
+            backgroundColor: Colors.red,
+          ),
+        );
         return;
       }
 
@@ -103,6 +132,13 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
       setState(() {
         _currentLocation = LatLng(position.latitude, position.longitude);
         _farmCenter = _currentLocation;
+        _currentMapPosition = _currentLocation; // Initialize map position
+        _markers.clear();
+        _markers.add(Marker(
+          markerId: const MarkerId('current_location'),
+          position: _currentLocation!,
+          infoWindow: InfoWindow(title: 'Current Location'),
+        ));
       });
       
       // Get exact location name
@@ -113,7 +149,12 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
         _analyzeLocation();
       }
     } catch (e) {
-      // Handle location error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error getting location: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -133,25 +174,55 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
         final data = jsonDecode(response.body);
         final address = data['address'];
         
-        // Build location name from address components
+        // Build detailed location name from address components
         List<String> locationParts = [];
         
+        // Start with the most specific details first
+        if (address['road'] != null) locationParts.add(address['road']);
+        if (address['street'] != null) locationParts.add(address['street']);
+        if (address['neighbourhood'] != null) locationParts.add(address['neighbourhood']);
         if (address['suburb'] != null) locationParts.add(address['suburb']);
+        if (address['quarter'] != null) locationParts.add(address['quarter']);
+        if (address['district'] != null) locationParts.add(address['district']);
         if (address['city'] != null) locationParts.add(address['city']);
         if (address['town'] != null) locationParts.add(address['town']);
+        if (address['village'] != null) locationParts.add(address['village']);
+        if (address['hamlet'] != null) locationParts.add(address['hamlet']);
         if (address['county'] != null) locationParts.add(address['county']);
         if (address['state'] != null) locationParts.add(address['state']);
         if (address['country'] != null) locationParts.add(address['country']);
         
+        // Create detailed location name
+        String locationName;
+        if (locationParts.isNotEmpty) {
+          // Remove duplicates while preserving order
+          List<String> uniqueParts = [];
+          for (String part in locationParts) {
+            if (!uniqueParts.contains(part)) {
+              uniqueParts.add(part);
+            }
+          }
+          locationName = uniqueParts.join(', ');
+        } else {
+          locationName = '${coordinates.latitude.toStringAsFixed(4)}, ${coordinates.longitude.toStringAsFixed(4)}';
+        }
+        
         setState(() {
-          _exactLocationName = locationParts.join(', ');
+          _exactLocationName = locationName;
+          _locationController.text = locationName;
+        });
+      } else {
+        // Handle API error - use coordinates
+        setState(() {
+          _exactLocationName = '${coordinates.latitude.toStringAsFixed(4)}, ${coordinates.longitude.toStringAsFixed(4)}';
           _locationController.text = _exactLocationName;
         });
       }
     } catch (e) {
-      // Handle geocoding error
+      // Handle network error - use coordinates as fallback
       setState(() {
-        _exactLocationName = 'Location not found';
+        _exactLocationName = '${coordinates.latitude.toStringAsFixed(4)}, ${coordinates.longitude.toStringAsFixed(4)}';
+        _locationController.text = _exactLocationName;
       });
     }
   }
@@ -164,38 +235,45 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     });
 
     try {
-      // Simulate AI analysis - in real app, this would call Ecofy's AI services
-      await Future.delayed(const Duration(seconds: 2));
+      // Get real soil and weather data from APIs
+      final soilData = await ApiService.getSoilDataForFarm(
+        _farmCenter!.latitude,
+        _farmCenter!.longitude,
+      );
       
-      // Mock soil analysis data
+      final weatherData = await ApiService.getWeatherData(
+        _farmCenter!.latitude,
+        _farmCenter!.longitude,
+      );
+
       setState(() {
         _soilData = {
-          'ph': 6.8,
-          'salinity': 0.5,
-          'soil_temp': 24.5,
-          'npk_n': 45,
-          'npk_p': 12,
-          'npk_k': 28,
-          'organic_matter': 3.2,
-          'soil_structure': 'Loamy',
-          'soil_type': 'Loam',
+          'ph': soilData['ph'],
+          'salinity': soilData['salinity'],
+          'soil_temp': soilData['soil_temp'],
+          'npk_n': soilData['npk_n'],
+          'npk_p': soilData['npk_p'],
+          'npk_k': soilData['npk_k'],
+          'organic_matter': soilData['organic_matter'],
+          'soil_structure': soilData['soil_structure'],
+          'soil_type': soilData['soil_type'],
         };
 
         _climateData = {
-          'climate_zone': 'Tropical',
-          'seasonal_pattern': 'Bimodal',
-          'average_temperature': 26.5,
-          'annual_rainfall': 1200,
-          'dry_season_months': 'Jan-Mar, Jul-Sep',
-          'wet_season_months': 'Apr-Jun, Oct-Dec',
+          'climate_zone': weatherData['climate_zone'],
+          'seasonal_pattern': weatherData['seasonal_pattern'],
+          'average_temperature': weatherData['average_temperature'],
+          'annual_rainfall': weatherData['annual_rainfall'],
+          'dry_season_months': weatherData['dry_season_months'],
+          'wet_season_months': weatherData['wet_season_months'],
         };
 
         _topographyData = {
-          'elevation': 1650,
-          'slope': 2.5,
-          'landscape_type': 'Gentle Hills',
-          'drainage': 'Good',
-          'erosion_risk': 'Low',
+          'elevation': weatherData['elevation'],
+          'slope': weatherData['slope'],
+          'landscape_type': weatherData['landscape_type'],
+          'drainage': weatherData['drainage'],
+          'erosion_risk': weatherData['erosion_risk'],
         };
 
         _isAnalyzingLocation = false;
@@ -220,6 +298,10 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   void _toggleMap() {
     setState(() {
       _showMap = !_showMap;
+      // Initialize current map position when map is shown
+      if (_showMap && _currentLocation != null) {
+        _currentMapPosition = _currentLocation;
+      }
     });
   }
 
@@ -229,33 +311,250 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
       _farmBoundary.clear();
       _polygons.clear();
     });
+    _startBoundaryTracking();
   }
 
   void _stopFarmMapping() {
     setState(() {
       _isMappingFarm = false;
     });
+    _stopBoundaryTracking();
     _calculateFarmArea();
   }
 
-  void _calculateFarmArea() {
-    if (_farmBoundary.length >= 3) {
-      double area = _calculatePolygonArea(_farmBoundary);
+  void _startBoundaryTracking() async {
+    try {
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permission needed for boundary tracking'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission permanently denied'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Start GPS tracking
       setState(() {
-        _sizeController.text = area.toStringAsFixed(2);
+        _isTrackingBoundary = true;
       });
+
+      // Start position stream with high accuracy
+      _positionStream = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 5, // Update every 5 meters
+        ),
+      ).listen((Position position) {
+        if (_isTrackingBoundary && _isMappingFarm) {
+          LatLng newPoint = LatLng(position.latitude, position.longitude);
+          print('GPS Point received: ${position.latitude}, ${position.longitude}');
+          
+          // Only add point if it's significantly different from the last point
+          bool shouldAddPoint = true;
+          if (_farmBoundary.isNotEmpty) {
+            LatLng lastPoint = _farmBoundary.last;
+            double distance = _calculateDistance(lastPoint, newPoint);
+            print('Distance from last point: ${distance.toStringAsFixed(2)} meters');
+            
+            // Only add point if it's at least 1 meter away from the last point (reduced for compound mapping)
+            shouldAddPoint = distance >= 1.0;
+          }
+          
+          if (shouldAddPoint) {
+            setState(() {
+              _currentGpsPosition = newPoint;
+              _farmBoundary.add(newPoint);
+              _updateFarmPolygon();
+            });
+            
+            print('Added boundary point: ${newPoint.latitude}, ${newPoint.longitude} (total: ${_farmBoundary.length})');
+            print('Total boundary points: ${_farmBoundary.length}');
+          }
+          
+          // Update map to follow user
+          if (_mapController != null) {
+            _mapController!.animateCamera(
+              CameraUpdate.newLatLng(newPoint),
+            );
+          }
+        }
+      });
+
+      // Start timer to add points at regular intervals and update GPS position
+      _boundaryTrackingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_isTrackingBoundary && _isMappingFarm) {
+          // Update current GPS position more frequently
+          Geolocator.getCurrentPosition().then((position) {
+            if (_isTrackingBoundary && _isMappingFarm) {
+              setState(() {
+                _currentGpsPosition = LatLng(position.latitude, position.longitude);
+              });
+              print('GPS Position updated: ${position.latitude}, ${position.longitude}');
+            }
+          });
+          
+          // Add boundary point every 3 seconds
+          if (timer.tick % 3 == 0 && _currentLocation != null) {
+            setState(() {
+              _farmBoundary.add(_currentLocation!);
+              _updateFarmPolygon();
+            });
+          }
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('GPS tracking started. Walk around your farm boundary.'),
+          backgroundColor: AppTheme.primaryGreen,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error starting GPS tracking: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  double _calculatePolygonArea(List<LatLng> points) {
-    double area = 0;
-    for (int i = 0; i < points.length; i++) {
-      int j = (i + 1) % points.length;
-      area += points[i].latitude * points[j].longitude;
-      area -= points[j].latitude * points[i].longitude;
+  void _stopBoundaryTracking() {
+    _positionStream?.cancel();
+    _boundaryTrackingTimer?.cancel();
+    setState(() {
+      _isTrackingBoundary = false;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('GPS tracking stopped. Boundary mapping complete.'),
+        backgroundColor: AppTheme.secondaryBlue,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _calculateFarmArea() {
+    print('Calculating farm area...');
+    print('Boundary points: ${_farmBoundary.length}');
+    
+    // Print all boundary points for debugging
+    for (int i = 0; i < _farmBoundary.length; i++) {
+      print('Point $i: ${_farmBoundary[i].latitude}, ${_farmBoundary[i].longitude}');
     }
-    area = area.abs() / 2;
-    return area * 247.105; // Convert to acres
+    
+    if (_farmBoundary.length >= 3) {
+      double area = _calculatePolygonArea(_farmBoundary);
+      print('Calculated area: $area');
+      
+      String unit = area < 0.01 ? 'sq meters' : 'acres';
+      String displayArea = area < 0.01 ? area.toStringAsFixed(1) : area.toStringAsFixed(2);
+      
+      setState(() {
+        _sizeController.text = displayArea;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Farm area calculated: $displayArea $unit'),
+          backgroundColor: AppTheme.primaryGreen,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      print('Not enough boundary points for area calculation');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Need at least 3 boundary points to calculate area'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    // Calculate distance between two points using Haversine formula
+    const double earthRadius = 6371000; // Earth radius in meters
+    
+    double lat1 = point1.latitude * (3.14159265359 / 180);
+    double lon1 = point1.longitude * (3.14159265359 / 180);
+    double lat2 = point2.latitude * (3.14159265359 / 180);
+    double lon2 = point2.longitude * (3.14159265359 / 180);
+    
+    double dLat = lat2 - lat1;
+    double dLon = lon2 - lon1;
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(lat1) * cos(lat2) * sin(dLon / 2) * sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    
+    return earthRadius * c;
+  }
+
+  double _calculatePolygonArea(List<LatLng> points) {
+    if (points.length < 3) return 0.0;
+    
+    print('Calculating area for ${points.length} points');
+    
+    // Use a simpler but more accurate approach for small areas
+    // Convert coordinates to meters using proper scaling
+    List<Map<String, double>> pointsInMeters = [];
+    
+    // Tanzania is around -6° latitude, so we use appropriate scaling
+    const double metersPerDegreeLat = 111320.0; // meters per degree latitude
+    const double metersPerDegreeLon = 111320.0 * 0.9945; // meters per degree longitude at -6° latitude
+    
+    for (int i = 0; i < points.length; i++) {
+      // Convert to meters from a reference point (first point)
+      double x = (points[i].longitude - points[0].longitude) * metersPerDegreeLon;
+      double y = (points[i].latitude - points[0].latitude) * metersPerDegreeLat;
+      pointsInMeters.add({'x': x, 'y': y});
+      print('Point $i: ${points[i].latitude}, ${points[i].longitude} -> x: $x m, y: $y m');
+    }
+    
+    // Calculate area using shoelace formula with meter coordinates
+    double area = 0.0;
+    for (int i = 0; i < pointsInMeters.length; i++) {
+      int j = (i + 1) % pointsInMeters.length;
+      area += pointsInMeters[i]['x']! * pointsInMeters[j]['y']!;
+      area -= pointsInMeters[j]['x']! * pointsInMeters[i]['y']!;
+    }
+    
+    area = area.abs() / 2; // Area in square meters
+    
+    // Convert to acres (1 acre = 4046.86 square meters)
+    double areaInAcres = area / 4046.86;
+    
+    print('Area calculation results:');
+    print('Area in square meters: $area');
+    print('Area in acres: $areaInAcres');
+    
+    // For very small areas (like a room), show in square meters instead
+    if (areaInAcres < 0.01) {
+      print('Area is very small, showing in square meters');
+      return area; // Return square meters for small areas
+    }
+    
+    return areaInAcres;
   }
 
   void _onMapTap(LatLng position) {
@@ -296,6 +595,27 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     }
   }
 
+  void _onCameraMove(CameraPosition position) {
+    setState(() {
+      _currentMapPosition = position.target;
+    });
+    print('Camera moved to: ${position.target.latitude}, ${position.target.longitude}');
+  }
+
+  void _onCameraIdle() {
+    // This ensures coordinates are updated when camera stops moving
+    if (_mapController != null) {
+      _mapController!.getVisibleRegion().then((bounds) {
+        setState(() {
+          _currentMapPosition = LatLng(
+            (bounds.northeast.latitude + bounds.southwest.latitude) / 2,
+            (bounds.northeast.longitude + bounds.southwest.longitude) / 2,
+          );
+        });
+      });
+    }
+  }
+
   Widget _buildSoilAnalysisSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,12 +647,12 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildAnalysisCard('pH', _soilData['ph']?.toString() ?? '6.8', 'pH Level'),
-            _buildAnalysisCard('Salinity', _soilData['salinity']?.toString() ?? '0.5', 'dS/m'),
-            _buildAnalysisCard('Soil Temp', _soilData['soil_temp']?.toString() ?? '22', '°C'),
-            _buildAnalysisCard('N-P-K', _soilData['npk_n'] != null ? '${_soilData['npk_n']}-${_soilData['npk_p']}-${_soilData['npk_k']}' : '15-10-20', 'N-P-K'),
-            _buildAnalysisCard('Organic Matter', _soilData['organic_matter']?.toString() ?? '2.1', '%'),
-            _buildAnalysisCard('Soil Type', _soilData['soil_type'] ?? 'Loam', 'Type'),
+            _buildAnalysisCard('pH', _soilData['ph']?.toString() ?? 'No data', 'pH Level'),
+            _buildAnalysisCard('Salinity', _soilData['salinity']?.toString() ?? 'No data', 'dS/m'),
+            _buildAnalysisCard('Soil Temp', _soilData['soil_temp']?.toString() ?? 'No data', '°C'),
+            _buildAnalysisCard('N-P-K', _soilData['npk_n'] != null ? '${_soilData['npk_n']}-${_soilData['npk_p']}-${_soilData['npk_k']}' : 'No data', 'N-P-K'),
+            _buildAnalysisCard('Organic Matter', _soilData['organic_matter']?.toString() ?? 'No data', '%'),
+            _buildAnalysisCard('Soil Type', _soilData['soil_type'] ?? 'No data', 'Type'),
           ],
         ),
       ],
@@ -362,12 +682,12 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildAnalysisCard('Climate Zone', _climateData['climate_zone'] ?? 'Tropical', 'Zone'),
-            _buildAnalysisCard('Seasonal Pattern', _climateData['seasonal_pattern'] ?? 'Bimodal', 'Pattern'),
-            _buildAnalysisCard('Avg Temperature', _climateData['average_temperature']?.toString() ?? '24', '°C'),
-            _buildAnalysisCard('Annual Rainfall', _climateData['annual_rainfall']?.toString() ?? '1200', 'mm/year'),
-            _buildAnalysisCard('Dry Season', _climateData['dry_season_months'] ?? 'Jan-Mar', 'Months'),
-            _buildAnalysisCard('Wet Season', _climateData['wet_season_months'] ?? 'Apr-Dec', 'Months'),
+            _buildAnalysisCard('Climate Zone', _climateData['climate_zone'] ?? 'No data', 'Zone'),
+            _buildAnalysisCard('Seasonal Pattern', _climateData['seasonal_pattern'] ?? 'No data', 'Pattern'),
+            _buildAnalysisCard('Avg Temperature', _climateData['average_temperature']?.toString() ?? 'No data', '°C'),
+            _buildAnalysisCard('Annual Rainfall', _climateData['annual_rainfall']?.toString() ?? 'No data', 'mm/year'),
+            _buildAnalysisCard('Dry Season', _climateData['dry_season_months'] ?? 'No data', 'Months'),
+            _buildAnalysisCard('Wet Season', _climateData['wet_season_months'] ?? 'No data', 'Months'),
           ],
         ),
       ],
@@ -397,11 +717,11 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildAnalysisCard('Elevation', _topographyData['elevation']?.toString() ?? '1650', 'm'),
-            _buildAnalysisCard('Slope', _topographyData['slope']?.toString() ?? '5', '%'),
-            _buildAnalysisCard('Landscape', _topographyData['landscape_type'] ?? 'Rolling', 'Type'),
-            _buildAnalysisCard('Drainage', _topographyData['drainage'] ?? 'Good', 'Quality'),
-            _buildAnalysisCard('Erosion Risk', _topographyData['erosion_risk'] ?? 'Low', 'Risk Level'),
+            _buildAnalysisCard('Elevation', _topographyData['elevation']?.toString() ?? 'No data', 'm'),
+            _buildAnalysisCard('Slope', _topographyData['slope']?.toString() ?? 'No data', '%'),
+            _buildAnalysisCard('Landscape', _topographyData['landscape_type'] ?? 'No data', 'Type'),
+            _buildAnalysisCard('Drainage', _topographyData['drainage'] ?? 'No data', 'Quality'),
+            _buildAnalysisCard('Erosion Risk', _topographyData['erosion_risk'] ?? 'No data', 'Risk Level'),
           ],
         ),
       ],
@@ -508,48 +828,124 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   }
 
   void _showCropSelectionDialog() {
+    List<String> tempSelectedCrops = List.from(_selectedCrops);
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Select Crops',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(
+            'Select Crops',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: Column(
+              children: [
+                Text(
+                  'Select the crops you plan to grow on this farm',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _availableCrops.length,
+                    itemBuilder: (context, index) {
+                      final crop = _availableCrops[index];
+                      final isSelected = tempSelectedCrops.contains(crop);
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppTheme.primaryGreen.withOpacity(0.1) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected ? AppTheme.primaryGreen : AppTheme.borderLight,
+                          ),
+                        ),
+                        child: CheckboxListTile(
+                          title: Text(
+                            crop,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          subtitle: isSelected ? Text(
+                            '✓ Selected',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.primaryGreen,
+                            ),
+                          ) : null,
+                          value: isSelected,
+                          onChanged: (bool? value) {
+                            setDialogState(() {
+                              if (value == true) {
+                                tempSelectedCrops.add(crop);
+                              } else {
+                                tempSelectedCrops.remove(crop);
+                              }
+                            });
+                          },
+                          activeColor: AppTheme.primaryGreen,
+                          checkColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          controlAffinity: ListTileControlAffinity.leading,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedCrops = List.from(tempSelectedCrops);
+                });
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Done',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _availableCrops.length,
-            itemBuilder: (context, index) {
-              final crop = _availableCrops[index];
-              final isSelected = _selectedCrops.contains(crop);
-              return CheckboxListTile(
-                title: Text(crop),
-                value: isSelected,
-                onChanged: (bool? value) {
-                  setState(() {
-                    if (value == true) {
-                      _selectedCrops.add(crop);
-                    } else {
-                      _selectedCrops.remove(crop);
-                    }
-                  });
-                },
-                activeColor: AppTheme.primaryGreen,
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
-          ),
-        ],
       ),
     );
   }
@@ -630,8 +1026,8 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Exact Location Display
-              if (_exactLocationName.isNotEmpty) ...[
+              // Location and Coordinates Display
+              if (_exactLocationName.isNotEmpty || _currentLocation != null) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -639,37 +1035,166 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3)),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.location_on,
-                        color: AppTheme.primaryGreen,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      // Location Name
+                      if (_exactLocationName.isNotEmpty) ...[
+                        Row(
                           children: [
+                            Icon(
+                              Icons.location_on,
+                              color: AppTheme.primaryGreen,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Exact Location:',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                  Text(
+                                    _exactLocationName,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      // Coordinates
+                      if (_currentLocation != null) ...[
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.gps_fixed,
+                              color: AppTheme.secondaryBlue,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              'Exact Location:',
+                              'Coordinates:',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 color: AppTheme.textSecondary,
                               ),
                             ),
-                            Text(
-                              _exactLocationName,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textPrimary,
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceLight,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: AppTheme.borderLight),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                                                      child: Text(
+                                  'Lat: ${(_isTrackingBoundary && _currentGpsPosition != null ? _currentGpsPosition!.latitude : (_currentMapPosition ?? _currentLocation)!.latitude).toStringAsFixed(6)}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                    ),
+                                    if (_currentMapPosition != null && _currentMapPosition != _currentLocation)
+                                      Icon(
+                                        Icons.gps_fixed,
+                                        size: 12,
+                                        color: AppTheme.secondaryBlue,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceLight,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: AppTheme.borderLight),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                                                      child: Text(
+                                  'Lng: ${(_isTrackingBoundary && _currentGpsPosition != null ? _currentGpsPosition!.longitude : (_currentMapPosition ?? _currentLocation)!.longitude).toStringAsFixed(6)}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                    ),
+                                    if (_currentMapPosition != null && _currentMapPosition != _currentLocation)
+                                      Icon(
+                                        Icons.gps_fixed,
+                                        size: 12,
+                                        color: AppTheme.secondaryBlue,
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
+                        if (_isMappingFarm) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryGreen.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _isTrackingBoundary ? Icons.gps_fixed : Icons.location_on,
+                                  size: 12,
+                                  color: AppTheme.primaryGreen,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    _isTrackingBoundary 
+                                      ? 'GPS tracking active - Walk around your farm boundary (${_farmBoundary.length} points)'
+                                      : 'Tap to add boundary point (${_farmBoundary.length} points)',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppTheme.primaryGreen,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ],
                   ),
                 ),
@@ -678,6 +1203,14 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
 
               // Map Section
               if (_showMap) ...[
+                if (_isMappingFarm && _isTrackingBoundary)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Boundary points collected: ${_farmBoundary.length}',
+                      style: TextStyle(fontSize: 16, color: Colors.green, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 Container(
                   height: 200,
                   decoration: BoxDecoration(
@@ -694,15 +1227,46 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                             ),
                             onMapCreated: (GoogleMapController controller) {
                               _mapController = controller;
+                              // Initialize current map position
+                              if (_currentLocation != null) {
+                                _currentMapPosition = _currentLocation;
+                              }
                             },
                             markers: _markers,
                             polygons: _polygons,
                             onTap: _onMapTap,
+                            onCameraMove: _onCameraMove,
+                            onCameraIdle: _onCameraIdle,
                             myLocationEnabled: true,
                             myLocationButtonEnabled: true,
                           )
-                        : const Center(
-                            child: CircularProgressIndicator(),
+                        : Container(
+                            color: AppTheme.surfaceLight,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.location_off,
+                                    size: 48,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Location not available',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: _getCurrentLocation,
+                                    child: const Text('Get Location'),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                   ),
                 ),
@@ -715,7 +1279,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                       child: ElevatedButton.icon(
                         onPressed: _isMappingFarm ? _stopFarmMapping : _startFarmMapping,
                         icon: Icon(_isMappingFarm ? Icons.stop : Icons.edit_location),
-                        label: Text(_isMappingFarm ? 'Stop Mapping' : 'Map Farm Boundary'),
+                        label: Text(_isMappingFarm ? 'Stop Mapping' : 'Mapping'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _isMappingFarm ? AppTheme.errorRed : AppTheme.primaryGreen,
                           foregroundColor: Colors.white,
@@ -814,36 +1378,94 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
               const SizedBox(height: 12),
 
               // Multi-select Dropdown for Crops
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.borderLight),
-                  borderRadius: BorderRadius.circular(8),
-                  color: AppTheme.surfaceLight,
-                ),
-                child: DropdownButtonFormField<String>(
-                  value: null,
-                  decoration: const InputDecoration(
-                    labelText: 'Select Crops',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              GestureDetector(
+                onTap: () {
+                  _showCropSelectionDialog();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.borderLight),
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppTheme.surfaceLight,
                   ),
-                  items: [
-                    DropdownMenuItem(
-                      value: null,
-                      child: Text(
-                        _selectedCrops.isEmpty 
-                            ? 'Select Crops' 
-                            : '${_selectedCrops.length} crop(s) selected',
-                        style: GoogleFonts.poppins(fontSize: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _selectedCrops.isEmpty 
+                              ? 'Select Crops' 
+                              : '${_selectedCrops.length} crop(s) selected',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    // Show crop selection dialog
-                    _showCropSelectionDialog();
-                  },
+                      Icon(
+                        Icons.keyboard_arrow_down,
+                        color: AppTheme.primaryGreen,
+                        size: 20,
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              const SizedBox(height: 12),
+              
+              // Selected Crops Display
+              if (_selectedCrops.isNotEmpty) ...[
+                Text(
+                  'Selected Crops:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedCrops.map((crop) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.primaryGreen),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          crop,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedCrops.remove(crop);
+                            });
+                          },
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
+                ),
+                const SizedBox(height: 16),
+              ],
+              
               const SizedBox(height: 100), // Extra space for bottom button
             ],
           ),
@@ -887,6 +1509,8 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
 
   @override
   void dispose() {
+    _positionStream?.cancel();
+    _boundaryTrackingTimer?.cancel();
     _nameController.dispose();
     _locationController.dispose();
     _sizeController.dispose();

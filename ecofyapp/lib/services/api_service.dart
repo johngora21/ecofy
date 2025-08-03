@@ -65,7 +65,7 @@ class ApiService {
   // Auth endpoints
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await _makeRequest('/auth/login', 'POST', body: {
-      'email': email,
+      'username': email, // API expects 'username' for email
       'password': password,
     });
 
@@ -78,8 +78,121 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    final response = await _makeRequest('/auth/register', 'POST', body: userData);
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Registration failed: ${response.body}');
+    }
+  }
+
   static Future<void> logout() async {
-    await clearAuthToken();
+    try {
+      await _makeRequest('/auth/logout', 'POST');
+    } finally {
+      await clearAuthToken();
+    }
+  }
+
+  // User endpoints
+  static Future<Map<String, dynamic>> getCurrentUser() async {
+    final response = await _makeRequest('/users/me', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to get user profile: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> userData) async {
+    final response = await _makeRequest('/users/me', 'PUT', body: userData);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update user profile: ${response.body}');
+    }
+  }
+
+  // Market endpoints
+  static Future<Map<String, dynamic>> getMarketPrices({String? cropId}) async {
+    final queryParams = <String, String>{};
+    if (cropId != null) queryParams['crop_id'] = cropId;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final response = await _makeRequest('/market/prices?$queryString', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch market prices: ${response.body}');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getMarketTrends(String cropId, {String period = 'month'}) async {
+    final response = await _makeRequest('/market/trends?crop_id=$cropId&period=$period', 'GET');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to fetch market trends: ${response.body}');
+    }
+  }
+
+  // Crops endpoints
+  static Future<List<Map<String, dynamic>>> getCrops() async {
+    final response = await _makeRequest('/crops', 'GET');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to fetch crops: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getCrop(String cropId) async {
+    final response = await _makeRequest('/crops/$cropId', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch crop: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getCropMarketData(String cropId) async {
+    final response = await _makeRequest('/crops/$cropId/market-data', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch crop market data: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getCropRecommendations(String cropId, {String? farmId}) async {
+    final queryParams = <String, String>{};
+    if (farmId != null) queryParams['farm_id'] = farmId;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final response = await _makeRequest('/crops/$cropId/recommendations?$queryString', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch crop recommendations: ${response.body}');
+    }
   }
 
   // Marketplace endpoints
@@ -109,6 +222,26 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> getProduct(String productId) async {
+    final response = await _makeRequest('/marketplace/products/$productId', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch product: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> createProduct(Map<String, dynamic> productData) async {
+    final response = await _makeRequest('/marketplace/products', 'POST', body: productData);
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create product: ${response.body}');
+    }
+  }
+
   // Farms endpoints
   static Future<List<Map<String, dynamic>>> getFarms() async {
     final response = await _makeRequest('/farms', 'GET');
@@ -118,6 +251,16 @@ class ApiService {
       return data.cast<Map<String, dynamic>>();
     } else {
       throw Exception('Failed to fetch farms: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getFarm(String farmId) async {
+    final response = await _makeRequest('/farms/$farmId', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch farm: ${response.body}');
     }
   }
 
@@ -149,9 +292,60 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> addCropHistory(String farmId, Map<String, dynamic> cropHistory) async {
+    final response = await _makeRequest('/farms/$farmId/crop-history', 'POST', body: cropHistory);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to add crop history: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateFarmSoilData(String farmId) async {
+    final response = await _makeRequest('/farms/$farmId/update-soil', 'PUT');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update farm soil data: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateFarmBoundary(String farmId, List<Map<String, double>> boundary) async {
+    final response = await _makeRequest('/farms/$farmId/boundary', 'POST', body: {
+      'boundary': boundary,
+    });
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update farm boundary: ${response.body}');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getFarmBoundary(String farmId) async {
+    final response = await _makeRequest('/farms/$farmId/boundary', 'GET');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to fetch farm boundary: ${response.body}');
+    }
+  }
+
   // Orders endpoints
-  static Future<List<Map<String, dynamic>>> getOrders() async {
-    final response = await _makeRequest('/orders', 'GET');
+  static Future<List<Map<String, dynamic>>> getOrders({String? type, String? status}) async {
+    final queryParams = <String, String>{};
+    if (type != null) queryParams['type'] = type;
+    if (status != null) queryParams['status'] = status;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final response = await _makeRequest('/orders?$queryString', 'GET');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -161,9 +355,83 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> getOrder(String orderId) async {
+    final response = await _makeRequest('/orders/$orderId', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch order: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
+    final response = await _makeRequest('/orders', 'POST', body: orderData);
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create order: ${response.body}');
+    }
+  }
+
+  // Notifications endpoints
+  static Future<List<Map<String, dynamic>>> getNotifications() async {
+    final response = await _makeRequest('/notifications', 'GET');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to fetch notifications: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> markNotificationAsRead(String notificationId) async {
+    final response = await _makeRequest('/notifications/$notificationId/read', 'PATCH');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to mark notification as read: ${response.body}');
+    }
+  }
+
+  // Chat endpoints
+  static Future<List<Map<String, dynamic>>> getChatConversations() async {
+    final response = await _makeRequest('/chat/conversations', 'GET');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to fetch chat conversations: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getChatMessages(String conversationId) async {
+    final response = await _makeRequest('/chat/messages/$conversationId', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch chat messages: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendChatMessage(Map<String, dynamic> messageData) async {
+    final response = await _makeRequest('/chat/messages', 'POST', body: messageData);
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to send chat message: ${response.body}');
+    }
+  }
+
   // External endpoints (weather, soil data)
   static Future<Map<String, dynamic>> getWeatherData(double lat, double lng) async {
-    final response = await _makeRequest('/weather?lat=$lat&lng=$lng', 'GET');
+    final response = await _makeRequest('/weather/forecast?lat=$lat&lng=$lng', 'GET');
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -173,12 +441,22 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getSoilData(double lat, double lng) async {
-    final response = await _makeRequest('/soil-data?lat=$lat&lng=$lng', 'GET');
+    final response = await _makeRequest('/satellite/soil?lat=$lat&lng=$lng', 'GET');
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to fetch soil data: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getSoilDataForFarm(double lat, double lng) async {
+    final response = await _makeRequest('/farms/soil-data?lat=$lat&lng=$lng', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch soil data for farm: ${response.body}');
     }
   }
 } 

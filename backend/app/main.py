@@ -5,7 +5,7 @@ import uvicorn
 import logging
 import sys
 
-from app.api.routes import auth, users, farms, crops, market, marketplace, orders, notifications, chat, external
+from app.api.routes import auth, users, farms, crops, market, marketplace, orders, notifications, chat, external, whatsapp, admin
 from app.core.config import settings
 from app.database import engine, Base
 
@@ -50,6 +50,8 @@ app.include_router(marketplace.router, prefix=f"{settings.API_V1_STR}/marketplac
 app.include_router(orders.router, prefix=f"{settings.API_V1_STR}/orders", tags=["Orders"])
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["Notifications"])
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["Chat"])
+app.include_router(whatsapp.router, prefix=f"{settings.API_V1_STR}/whatsapp", tags=["WhatsApp"])
+app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
 app.include_router(external.router, prefix=f"{settings.API_V1_STR}", tags=["External"])
 
 @app.get("/", tags=["Root"])

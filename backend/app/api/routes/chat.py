@@ -11,7 +11,7 @@ from app.models.user import User
 from app.schemas.chat import ChatSession as ChatSessionSchema
 from app.schemas.chat import ChatMessage as ChatMessageSchema
 from app.schemas.chat import ChatMessageResponse, MessageType
-from app.services.gemini_service import process_text_message, process_audio_message
+from app.services.openai_service import openai_service
 
 router = APIRouter()
 
@@ -103,8 +103,8 @@ async def create_chat_message(
     db.commit()
     db.refresh(user_message)
     
-    # Process message with Gemini AI
-    ai_content = await process_text_message(message.content, current_user, db)
+    # Process message with OpenAI GPT-4o
+    ai_content = await openai_service.generate_text_response(message.content, current_user, db)
     
     # Create AI response message
     ai_message = ChatMessage(
@@ -172,8 +172,8 @@ async def create_audio_chat_message(
     db.refresh(user_message)
     
     try:
-        # Process audio with Gemini AI
-        ai_audio_bytes = await process_audio_message(audio_bytes, content_type, current_user, db)
+        # Process audio with OpenAI (Whisper + GPT-4o + TTS)
+        ai_response_text, ai_audio_bytes = await openai_service.process_voice_message(audio_bytes, current_user, db)
         
         # Save AI audio response (in a real app, save to storage)
         ai_file_url = f"/uploads/chat/{session_id}/ai_response_{datetime.utcnow().timestamp()}.mp3"
