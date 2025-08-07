@@ -781,24 +781,29 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     });
 
     try {
-      await ApiService.createFarm({
-        'name': _nameController.text,
-        'location': _locationController.text,
-        'size_in_acres': double.tryParse(_sizeController.text) ?? 0.0,
-        'description': _descriptionController.text,
-        'crops': _selectedCrops,
-        'coordinates': {
-          'lat': _farmCenter?.latitude.toString() ?? '0.0',
-          'lng': _farmCenter?.longitude.toString() ?? '0.0',
-        },
-        'farm_boundary': _farmBoundary.map((point) => {
+      // Convert farm boundary to the format expected by the API
+      List<Map<String, double>>? farmBoundary;
+      if (_farmBoundary.isNotEmpty) {
+        farmBoundary = _farmBoundary.map((point) => {
           'lat': point.latitude,
           'lng': point.longitude,
-        }).toList(),
-        'soil_analysis': _soilData,
-        'climate_data': _climateData,
-        'topography_data': _topographyData,
-      });
+        }).toList();
+      }
+
+      // Use the comprehensive farm creation API
+      await ApiService.createFarmWithAnalysis(
+        name: _nameController.text,
+        location: _locationController.text,
+        size: _sizeController.text,
+        description: _descriptionController.text,
+        latitude: (_currentLocation ?? _farmCenter)!.latitude,
+        longitude: (_currentLocation ?? _farmCenter)!.longitude,
+        farmBoundary: farmBoundary,
+        soilAnalysis: _soilData,
+        climateData: _climateData,
+        topographyData: _topographyData,
+        selectedCrops: _selectedCrops,
+      );
 
       if (mounted) {
         Navigator.pop(context, true);

@@ -136,6 +136,96 @@ class ApiService {
     }
   }
 
+  // Real-time market data endpoints
+  static Future<Map<String, dynamic>> getRealTimePrices() async {
+    final response = await _makeRequest('/market/prices/latest', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch real-time prices: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getCropSupplyPrices({int limit = 100}) async {
+    final response = await _makeRequest('/market/cropsupply/prices?limit=$limit', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch CropSupply prices: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getScrapedMarketData({String? source, int limit = 100}) async {
+    final queryParams = <String, String>{
+      'limit': limit.toString(),
+    };
+    if (source != null) queryParams['source'] = source;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final response = await _makeRequest('/market/prices/scraped?$queryString', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch scraped market data: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAITrainingData({String? source, double minQuality = 0.5, int limit = 100}) async {
+    final queryParams = <String, String>{
+      'min_quality': minQuality.toString(),
+      'limit': limit.toString(),
+    };
+    if (source != null) queryParams['source'] = source;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final response = await _makeRequest('/market/ai/training-data?$queryString', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch AI training data: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getScrapingStatus() async {
+    final response = await _makeRequest('/market/scrape/status', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch scraping status: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> triggerHistoricalScraping() async {
+    final response = await _makeRequest('/market/scrape/historical', 'POST');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to trigger historical scraping: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> triggerCropSupplyScraping() async {
+    final response = await _makeRequest('/market/scrape/cropsupply', 'POST');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to trigger CropSupply scraping: ${response.body}');
+    }
+  }
+
   static Future<Map<String, dynamic>> getLatestPrices() async {
     final response = await _makeRequest('/market/prices/latest', 'GET');
 
@@ -505,6 +595,56 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to fetch soil data for farm: ${response.body}');
+    }
+  }
+
+  // Comprehensive farm creation with all data
+  static Future<Map<String, dynamic>> createFarmWithAnalysis({
+    required String name,
+    required String location,
+    required String size,
+    String? description,
+    required double latitude,
+    required double longitude,
+    List<Map<String, double>>? farmBoundary,
+    Map<String, dynamic>? soilAnalysis,
+    Map<String, dynamic>? climateData,
+    Map<String, dynamic>? topographyData,
+    List<String>? selectedCrops,
+  }) async {
+    final farmData = {
+      'name': name,
+      'location': location,
+      'size': size,
+      'description': description,
+      'coordinates': {
+        'lat': latitude.toString(),
+        'lng': longitude.toString(),
+      },
+      if (farmBoundary != null) 'farm_boundary': farmBoundary,
+      if (soilAnalysis != null) 'soil_analysis': soilAnalysis,
+      if (climateData != null) 'climate_data': climateData,
+      if (topographyData != null) 'topography_data': topographyData,
+      if (selectedCrops != null) 'selected_crops': selectedCrops,
+    };
+
+    final response = await _makeRequest('/farms', 'POST', body: farmData);
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create farm: ${response.body}');
+    }
+  }
+
+  // Analyze soil for existing farm
+  static Future<Map<String, dynamic>> analyzeFarmSoil(String farmId) async {
+    final response = await _makeRequest('/farms/$farmId/analyze-soil', 'POST');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to analyze farm soil: ${response.body}');
     }
   }
 }

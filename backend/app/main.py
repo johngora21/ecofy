@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.database import connect_to_mongo, close_mongo_connection
-from app.api.routes import users, farms, crops, marketplace, market
+from app.api.routes import users, farms, crops, marketplace, market, external
 from app.services.scraper_service import setup_scraper_scheduler
 from app.services.monitor_service import start_document_monitor
 
@@ -53,6 +53,7 @@ app.include_router(farms.router, prefix="/api/v1/farms", tags=["farms"])
 app.include_router(crops.router, prefix="/api/v1/crops", tags=["crops"])
 app.include_router(marketplace.router, prefix="/api/v1/marketplace", tags=["marketplace"])
 app.include_router(market.router, prefix="/api/v1/market", tags=["market"])
+app.include_router(external.router, prefix="/api/v1/external", tags=["external"])
 
 @app.get("/")
 async def root():

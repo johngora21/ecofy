@@ -28,7 +28,10 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   List<Map<String, dynamic>> _crops = [];
   List<Map<String, dynamic>> _marketPrices = [];
   List<Map<String, dynamic>> _marketTrends = [];
+  List<Map<String, dynamic>> _cropSupplyPrices = [];
+  List<Map<String, dynamic>> _scrapedMarketData = [];
   Map<String, dynamic>? _currentCropData;
+  Map<String, dynamic>? _scrapingStatus;
 
   final List<String> _units = [
     'Kilogram (kg)',
@@ -89,8 +92,17 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
         }
       });
 
-      // Load market prices
-      await _loadMarketPrices();
+      // Load real-time market data
+      await _loadRealTimeMarketData();
+      
+      // Load CropSupply.com prices
+      await _loadCropSupplyPrices();
+      
+      // Load scraped market data
+      await _loadScrapedMarketData();
+      
+      // Load scraping status
+      await _loadScrapingStatus();
       
       // Load market trends for selected crop
       await _loadMarketTrends();
@@ -103,6 +115,50 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadRealTimeMarketData() async {
+    try {
+      final marketData = await ApiService.getRealTimePrices();
+      setState(() {
+        _marketPrices = marketData['data'] ?? [];
+      });
+    } catch (e) {
+      print('Error loading real-time market prices: $e');
+    }
+  }
+
+  Future<void> _loadCropSupplyPrices() async {
+    try {
+      final cropSupplyData = await ApiService.getCropSupplyPrices(limit: 100);
+      setState(() {
+        _cropSupplyPrices = cropSupplyData['data'] ?? [];
+      });
+    } catch (e) {
+      print('Error loading CropSupply prices: $e');
+    }
+  }
+
+  Future<void> _loadScrapedMarketData() async {
+    try {
+      final scrapedData = await ApiService.getScrapedMarketData(limit: 100);
+      setState(() {
+        _scrapedMarketData = scrapedData['data'] ?? [];
+      });
+    } catch (e) {
+      print('Error loading scraped market data: $e');
+    }
+  }
+
+  Future<void> _loadScrapingStatus() async {
+    try {
+      final statusData = await ApiService.getScrapingStatus();
+      setState(() {
+        _scrapingStatus = statusData;
+      });
+    } catch (e) {
+      print('Error loading scraping status: $e');
     }
   }
 
@@ -187,13 +243,251 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Map<String, dynamic>? _getCurrentCropMarketData() {
+    // Get all data for the selected crop from both sources
+    final cropSupplyData = _cropSupplyPrices.where((price) => 
+      price['crop_name']?.toString().toLowerCase() == _selectedCrop.toLowerCase()
+    ).toList();
+    
+    final scrapedData = _scrapedMarketData.where((price) => 
+      price['crop_name']?.toString().toLowerCase() == _selectedCrop.toLowerCase()
+    ).toList();
+
+    // Find the best match for the selected location
+    final selectedLocation = _selectedLocation.toLowerCase();
+    
+    // First, try to find Ministry data for the selected location (priority)
+    final ministryMatch = scrapedData.firstWhere(
+      (data) => (data['region']?.toString().toLowerCase() == selectedLocation ||
+                 data['district']?.toString().toLowerCase() == selectedLocation),
+      orElse: () => {},
+    );
+    
+    if (ministryMatch.isNotEmpty) {
+      return {
+        'current_price': ministryMatch['price'] ?? 0.0,
+        'percent_change': 0.0,
+        'source': 'Ministry of Industry & Trade',
+        'region': ministryMatch['region'] ?? 'Unknown',
+        'district': ministryMatch['district'] ?? '',
+        'quality': ministryMatch['quality'] ?? 'Standard',
+        'recommendation': _getRecommendation(ministryMatch['price'] ?? 0.0),
+        'data_quality_score': ministryMatch['data_quality_score'] ?? 0.0,
+      };
+    }
+    
+    // If no Ministry data, try CropSupply.com for the selected location
+    final cropSupplyMatch = cropSupplyData.firstWhere(
+      (data) => (data['region']?.toString().toLowerCase() == selectedLocation ||
+                 data['district']?.toString().toLowerCase() == selectedLocation),
+      orElse: () => {},
+    );
+    
+    if (cropSupplyMatch.isNotEmpty) {
+      return {
+        'current_price': cropSupplyMatch['price'] ?? 0.0,
+        'percent_change': 0.0,
+        'source': 'CropSupply.com',
+        'region': cropSupplyMatch['region'] ?? 'Unknown',
+        'district': cropSupplyMatch['district'] ?? '',
+        'quality': cropSupplyMatch['quality'] ?? 'Standard',
+        'recommendation': _getRecommendation(cropSupplyMatch['price'] ?? 0.0),
+        'data_quality_score': 0.8, // Real-time data gets high quality score
+      };
+    }
+    
+    // If no location-specific data, get the best available data
+    if (scrapedData.isNotEmpty) {
+      // Sort by data quality score (Ministry data)
+      scrapedData.sort((a, b) => 
+        (b['data_quality_score'] ?? 0.0).compareTo(a['data_quality_score'] ?? 0.0)
+      );
+      final bestMinistryData = scrapedData.first;
+      
+      return {
+        'current_price': bestMinistryData['price'] ?? 0.0,
+        'percent_change': 0.0,
+        'source': 'Ministry of Industry & Trade',
+        'region': bestMinistryData['region'] ?? 'Unknown',
+        'district': bestMinistryData['district'] ?? '',
+        'quality': bestMinistryData['quality'] ?? 'Standard',
+        'recommendation': _getRecommendation(bestMinistryData['price'] ?? 0.0),
+        'data_quality_score': bestMinistryData['data_quality_score'] ?? 0.0,
+      };
+    }
+    
+    if (cropSupplyData.isNotEmpty) {
+      // Get the most recent CropSupply data
+      final bestCropSupplyData = cropSupplyData.first;
+      
+      return {
+        'current_price': bestCropSupplyData['price'] ?? 0.0,
+        'percent_change': 0.0,
+        'source': 'CropSupply.com',
+        'region': bestCropSupplyData['region'] ?? 'Unknown',
+        'district': bestCropSupplyData['district'] ?? '',
+        'quality': bestCropSupplyData['quality'] ?? 'Standard',
+        'recommendation': _getRecommendation(bestCropSupplyData['price'] ?? 0.0),
+        'data_quality_score': 0.8,
+      };
+    }
+
+    // Fallback to regular market prices
     return _marketPrices.firstWhere(
       (price) => price['crop_name'] == _selectedCrop,
       orElse: () => {},
     );
   }
 
-  // Mock data for price trends
+  String _getRecommendation(double price) {
+    if (price > 5000) {
+      return 'High price - Consider selling or waiting for better market conditions.';
+    } else if (price > 3000) {
+      return 'Moderate price - Good time for balanced trading.';
+    } else if (price > 1000) {
+      return 'Low price - Consider buying or holding for better prices.';
+    } else {
+      return 'Very low price - Excellent buying opportunity.';
+    }
+  }
+
+  List<Map<String, dynamic>> _getMergedPriceData() {
+    final mergedData = <Map<String, dynamic>>[];
+    final seenKeys = <String>{}; // Track crop+region+district combinations
+    
+    // Process Ministry data first (priority)
+    for (final ministryData in _scrapedMarketData) {
+      final cropName = ministryData['crop_name']?.toString().toLowerCase() ?? '';
+      final region = ministryData['region']?.toString().toLowerCase() ?? '';
+      final district = ministryData['district']?.toString().toLowerCase() ?? '';
+      final key = '$cropName|$region|$district';
+      
+      if (!seenKeys.contains(key)) {
+        seenKeys.add(key);
+        mergedData.add({
+          ...ministryData,
+          'source': 'Ministry of Industry & Trade',
+          'priority': 1, // Higher priority
+        });
+      }
+    }
+    
+    // Process CropSupply data (fallback for missing combinations)
+    for (final cropSupplyData in _cropSupplyPrices) {
+      final cropName = cropSupplyData['crop_name']?.toString().toLowerCase() ?? '';
+      final region = cropSupplyData['region']?.toString().toLowerCase() ?? '';
+      final district = cropSupplyData['district']?.toString().toLowerCase() ?? '';
+      final key = '$cropName|$region|$district';
+      
+      if (!seenKeys.contains(key)) {
+        seenKeys.add(key);
+        mergedData.add({
+          ...cropSupplyData,
+          'source': 'CropSupply.com',
+          'priority': 2, // Lower priority
+        });
+      }
+    }
+    
+    return mergedData;
+  }
+
+  List<Map<String, dynamic>> _getPriceTrendData() {
+    // Get merged data for the selected crop
+    final mergedData = _getMergedPriceData();
+    final cropData = mergedData.where((data) => 
+      data['crop_name']?.toString().toLowerCase() == _selectedCrop.toLowerCase()
+    ).toList();
+    
+    if (cropData.isNotEmpty) {
+      // Sort by date and source priority
+      cropData.sort((a, b) {
+        final dateA = a['date'] ?? '';
+        final dateB = b['date'] ?? '';
+        final priorityA = a['priority'] ?? 2;
+        final priorityB = b['priority'] ?? 2;
+        
+        // First sort by date (newest first)
+        final dateComparison = dateB.compareTo(dateA);
+        if (dateComparison != 0) return dateComparison;
+        
+        // Then sort by priority (Ministry first)
+        return priorityA.compareTo(priorityB);
+      });
+      
+      return cropData.map((data) => {
+        'date': data['date'] ?? '',
+        'price': data['price'] ?? 0.0,
+        'volume': 0.0, // We don't have volume data from scraped sources
+        'source': data['source'] ?? 'Unknown',
+        'region': data['region'] ?? 'Unknown',
+      }).toList();
+    }
+
+    // Use real market trends if available
+    if (_marketTrends.isNotEmpty) {
+      return _marketTrends.map((trend) => {
+        'date': trend['date'] ?? '',
+        'price': trend['price'] ?? 0.0,
+        'volume': trend['volume'] ?? 0.0,
+        'source': 'Market Trends',
+      }).toList();
+    }
+
+    // Return empty list if no data
+    return [];
+  }
+
+  Map<String, double> _getRegionalPriceData() {
+    final regionalData = <String, double>{};
+    final mergedData = _getMergedPriceData();
+    
+    // Get data for the selected crop
+    final cropData = mergedData.where((data) => 
+      data['crop_name']?.toString().toLowerCase() == _selectedCrop.toLowerCase()
+    ).toList();
+    
+    // Group by region and use the best data for each region
+    final regionGroups = <String, List<Map<String, dynamic>>>{};
+    
+    for (final data in cropData) {
+      final region = data['region']?.toString() ?? 'Unknown';
+      if (!regionGroups.containsKey(region)) {
+        regionGroups[region] = [];
+      }
+      regionGroups[region]!.add(data);
+    }
+    
+    // For each region, select the best data (Ministry priority, then highest quality)
+    for (final entry in regionGroups.entries) {
+      final region = entry.key;
+      final regionData = entry.value;
+      
+      // Sort by priority (Ministry first) and quality score
+      regionData.sort((a, b) {
+        final priorityA = a['priority'] ?? 2;
+        final priorityB = b['priority'] ?? 2;
+        final qualityA = a['data_quality_score'] ?? 0.0;
+        final qualityB = b['data_quality_score'] ?? 0.0;
+        
+        // First sort by priority
+        final priorityComparison = priorityA.compareTo(priorityB);
+        if (priorityComparison != 0) return priorityComparison;
+        
+        // Then sort by quality score
+        return qualityB.compareTo(qualityA);
+      });
+      
+      final bestData = regionData.first;
+      final price = bestData['price'] ?? 0.0;
+      if (price > 0) {
+        regionalData[region] = price;
+      }
+    }
+    
+    return regionalData;
+  }
+
+  // Mock data for price trends (fallback)
   Map<String, List<Map<String, dynamic>>> _priceData = {
     'Maize': [
       {'date': 'Jan', 'price': 1200.0, 'volume': 1500.0},
@@ -221,7 +515,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
     ],
   };
 
-  // Mock data for regional comparison
+  // Mock data for regional comparison (fallback)
   Map<String, Map<String, double>> _regionalData = {
     'Maize': {
       'Arusha': 1680,
@@ -294,7 +588,8 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   ];
 
   Widget _buildPriceChart() {
-    if (_marketTrends.isEmpty) {
+    final priceTrends = _getPriceTrendData();
+    if (priceTrends.isEmpty) {
       return Container(
         height: 300,
         padding: const EdgeInsets.all(16),
@@ -367,8 +662,8 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                 reservedSize: 30,
                 interval: 1,
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  if (value.toInt() >= 0 && value.toInt() < _marketTrends.length) {
-                    final date = _marketTrends[value.toInt()]['date'] ?? '';
+                  if (value.toInt() >= 0 && value.toInt() < priceTrends.length) {
+                    final date = priceTrends[value.toInt()]['date'] ?? '';
                     return SideTitleWidget(
                       axisSide: meta.axisSide,
                       child: Text(
@@ -406,12 +701,12 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
             border: Border.all(color: AppTheme.borderLight),
           ),
           minX: 0,
-          maxX: (_marketTrends.length - 1).toDouble(),
+          maxX: (priceTrends.length - 1).toDouble(),
           minY: 0,
-          maxY: _marketTrends.map((e) => (e['price'] as num).toDouble()).reduce((a, b) => a > b ? a : b) + 200,
+          maxY: priceTrends.map((e) => (e['price'] as num).toDouble()).reduce((a, b) => a > b ? a : b) + 200,
           lineBarsData: [
             LineChartBarData(
-              spots: _marketTrends.asMap().entries.map((entry) {
+              spots: priceTrends.asMap().entries.map((entry) {
                 return FlSpot(entry.key.toDouble(), (entry.value['price'] as num).toDouble());
               }).toList(),
               isCurved: true,
@@ -452,7 +747,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Widget _buildVolumeChart() {
-    final data = _priceData[_selectedCrop] ?? [];
+    final data = _getPriceTrendData();
     if (data.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -560,7 +855,7 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
   }
 
   Widget _buildRegionalComparisonChart() {
-    final regionalPrices = _regionalData[_selectedCrop] ?? {};
+    final regionalPrices = _getRegionalPriceData();
     if (regionalPrices.isEmpty) return const SizedBox.shrink();
 
     final sortedData = regionalPrices.entries.toList()
@@ -808,6 +1103,58 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Data Source Information
+                Row(
+                  children: [
+                    Icon(
+                      currentCropData?['source']?.toString().contains('Ministry') == true 
+                        ? Icons.verified 
+                        : Icons.update,
+                      color: currentCropData?['source']?.toString().contains('Ministry') == true 
+                        ? AppTheme.primaryGreen 
+                        : AppTheme.secondaryBlue,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Source: ${currentCropData?['source'] ?? 'Unknown'}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                    if (currentCropData?['data_quality_score'] != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getQualityColor(currentCropData!['data_quality_score']),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Quality: ${(currentCropData!['data_quality_score'] * 100).toInt()}%',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (currentCropData?['district'] != null && currentCropData!['district'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      'District: ${currentCropData!['district']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
                   ),
                 ),
               ],
@@ -1155,6 +1502,16 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
         return AppTheme.successGreen;
       default:
         return AppTheme.textSecondary;
+    }
+  }
+
+  Color _getQualityColor(double qualityScore) {
+    if (qualityScore >= 0.9) {
+      return AppTheme.primaryGreen;
+    } else if (qualityScore >= 0.7) {
+      return AppTheme.warningYellow;
+    } else {
+      return AppTheme.errorRed;
     }
   }
 

@@ -21,6 +21,32 @@ class SoilParameters(BaseModel):
     organic_matter: Optional[str] = None
     npk: Optional[str] = None
 
+class SoilAnalysis(BaseModel):
+    ph: Optional[str] = None
+    salinity: Optional[str] = None
+    soil_temp: Optional[str] = None
+    npk_n: Optional[str] = None
+    npk_p: Optional[str] = None
+    npk_k: Optional[str] = None
+    organic_matter: Optional[str] = None
+    soil_structure: Optional[str] = None
+    soil_type: Optional[str] = None
+
+class ClimateData(BaseModel):
+    climate_zone: Optional[str] = None
+    seasonal_pattern: Optional[str] = None
+    average_temperature: Optional[float] = None
+    annual_rainfall: Optional[int] = None
+    dry_season_months: Optional[str] = None
+    wet_season_months: Optional[str] = None
+
+class TopographyData(BaseModel):
+    elevation: Optional[int] = None
+    slope: Optional[str] = None
+    landscape_type: Optional[str] = None
+    drainage: Optional[str] = None
+    erosion_risk: Optional[str] = None
+
 class CropHistory(BaseModel):
     crop: str
     season: str
@@ -30,27 +56,39 @@ class FarmBase(BaseModel):
     name: str
     location: str
     size: str
-    topography: Optional[str] = None
+    description: Optional[str] = None
     coordinates: Coordinates
     farm_boundary: Optional[List[FarmBoundary]] = None
-    soil_params: Optional[SoilParameters] = None
+    soil_analysis: Optional[SoilAnalysis] = None
+    climate_data: Optional[ClimateData] = None
+    topography_data: Optional[TopographyData] = None
+    selected_crops: Optional[List[str]] = None
+    soil_params: Optional[SoilParameters] = None  # Keep for backward compatibility
    
 
 class FarmCreate(BaseModel):
     name: str
     location: str
     size: str
-    topography: Optional[str] = None
+    description: Optional[str] = None
     coordinates: Coordinates
     farm_boundary: Optional[List[FarmBoundary]] = None
+    soil_analysis: Optional[SoilAnalysis] = None
+    climate_data: Optional[ClimateData] = None
+    topography_data: Optional[TopographyData] = None
+    selected_crops: Optional[List[str]] = None
 
 class FarmUpdate(BaseModel):
     name: Optional[str] = None
     location: Optional[str] = None
     size: Optional[str] = None
-    topography: Optional[str] = None
+    description: Optional[str] = None
     coordinates: Optional[Coordinates] = None
     farm_boundary: Optional[List[FarmBoundary]] = None
+    soil_analysis: Optional[SoilAnalysis] = None
+    climate_data: Optional[ClimateData] = None
+    topography_data: Optional[TopographyData] = None
+    selected_crops: Optional[List[str]] = None
 
 class FarmResponse(FarmBase):
     id: str
