@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
-from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 import logging
+from bson import ObjectId
+from datetime import datetime
 
 from app.api.deps import get_current_user
-from app.database import get_db
-from app.models.user import User
-from app.models.whatsapp import WhatsAppTemplate, WhatsAppMessage, WhatsAppSession, WhatsAppWebhook
+from app.database import get_database
 from app.schemas.whatsapp import (
     WhatsAppTemplate as WhatsAppTemplateSchema,
     WhatsAppTemplateCreate,
@@ -33,7 +32,7 @@ async def list_templates(
     category: str = None,
     status: str = None,
     page: int = 1,
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Fetch WhatsApp templates from Beem API"""
     try:
@@ -45,8 +44,8 @@ async def list_templates(
 @router.post("/templates/send", response_model=Dict[str, Any])
 async def send_template_message(
     request: TemplateSendRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     """Send template-based WhatsApp message"""
     try:
@@ -62,30 +61,29 @@ async def send_template_message(
             phone_number = dest["phoneNumber"]
             params = dest.get("params", [])
             
-            message = WhatsAppMessage(
-                from_addr=request.from_addr,
-                destination_addr=phone_number,
-                message_type="template",
-                template_id=str(request.messageTemplateData["id"]),
-                params=params,
-                status="sent",
-                job_id=result.get("jobId")
-            )
-            db.add(message)
+            message_doc = {
+                "from_addr": request.from_addr,
+                "destination_addr": phone_number,
+                "message_type": "template",
+                "template_id": str(request.messageTemplateData["id"]),
+                "params": params,
+                "status": "sent",
+                "job_id": result.get("jobId"),
+                "created_at": datetime.utcnow()
+            }
+            db.whatsapp_messages.insert_one(message_doc)
         
-        db.commit()
         return result
         
     except Exception as e:
         logger.error(f"Error sending template message: {e}")
-        db.rollback()
         raise HTTPException(status_code=500, detail="Failed to send template message")
 
 # AI Chat Routes
 @router.post("/ai/chat", response_model=WhatsAppAIResponse)
 async def ai_chat_message(
     request: WhatsAppAIMessage,
-    db: Session = Depends(get_db)
+    db = Depends(get_database)
 ):
     """Process AI chat message via WhatsApp"""
     try:
@@ -98,9 +96,8 @@ async def ai_chat_message(
         
         return WhatsAppAIResponse(
             message=ai_response,
-            template_id=None,
-            params=None,
-            media_url=None
+            response_type=response_type,
+            audio_data=audio_data
         )
         
     except Exception as e:
@@ -111,29 +108,22 @@ async def ai_chat_message(
 async def ai_voice_message(
     phone_number: str = Body(...),
     voice_url: str = Body(...),
-    db: Session = Depends(get_db)
+    db = Depends(get_database)
 ):
     """Process AI voice message via WhatsApp"""
     try:
         ai_response, response_type, audio_data = await whatsapp_service.process_incoming_message(
             phone_number=phone_number,
-            message="[Voice message]",
+            message="",  # Voice message
             message_type="voice",
-            media_url=voice_url,
+            voice_url=voice_url,
             db=db
         )
         
-        # In production, you'd upload audio_data to accessible URL
-        media_url = None
-        if audio_data:
-            # TODO: Upload audio_data to cloud storage and get URL
-            media_url = "https://your-server.com/audio/response.mp3"
-        
         return WhatsAppAIResponse(
             message=ai_response,
-            template_id=None,
-            params=None,
-            media_url=media_url
+            response_type=response_type,
+            audio_data=audio_data
         )
         
     except Exception as e:
@@ -145,7 +135,7 @@ async def ai_image_analysis(
     phone_number: str = Body(...),
     image_url: str = Body(...),
     message: str = Body("Please analyze this crop image"),
-    db: Session = Depends(get_db)
+    db = Depends(get_database)
 ):
     """Process AI image analysis via WhatsApp"""
     try:
@@ -153,15 +143,14 @@ async def ai_image_analysis(
             phone_number=phone_number,
             message=message,
             message_type="image",
-            media_url=image_url,
+            image_url=image_url,
             db=db
         )
         
         return WhatsAppAIResponse(
             message=ai_response,
-            template_id=None,
-            params=None,
-            media_url=None
+            response_type=response_type,
+            audio_data=audio_data
         )
         
     except Exception as e:
@@ -171,27 +160,24 @@ async def ai_image_analysis(
 # Session Management Routes
 @router.get("/sessions", response_model=List[WhatsAppSessionSchema])
 async def get_whatsapp_sessions(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     """Get WhatsApp sessions for current user"""
-    sessions = db.query(WhatsAppSession).filter(
-        WhatsAppSession.user_id == current_user.id
-    ).order_by(WhatsAppSession.last_message_time.desc()).all()
-    
+    sessions = list(db.whatsapp_sessions.find({"user_id": current_user["_id"]}).sort("last_message_time", -1))
     return sessions
 
 @router.get("/sessions/{session_id}", response_model=WhatsAppSessionSchema)
 async def get_whatsapp_session(
     session_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     """Get specific WhatsApp session"""
-    session = db.query(WhatsAppSession).filter(
-        WhatsAppSession.id == session_id,
-        WhatsAppSession.user_id == current_user.id
-    ).first()
+    session = db.whatsapp_sessions.find_one({
+        "_id": ObjectId(session_id),
+        "user_id": current_user["_id"]
+    })
     
     if not session:
         raise HTTPException(
@@ -205,7 +191,7 @@ async def get_whatsapp_session(
 @router.post("/webhook", response_model=Dict[str, str])
 async def whatsapp_webhook(
     request: Request,
-    db: Session = Depends(get_db)
+    db = Depends(get_database)
 ):
     """Handle WhatsApp webhook from Beem Africa"""
     try:
@@ -232,33 +218,30 @@ async def webhook_verification(request: Request):
 # Message Management Routes
 @router.get("/messages", response_model=List[WhatsAppMessageSchema])
 async def get_whatsapp_messages(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     """Get WhatsApp messages for current user"""
-    messages = db.query(WhatsAppMessage).filter(
-        WhatsAppMessage.user_id == current_user.id
-    ).order_by(WhatsAppMessage.created_at.desc()).limit(50).all()
-    
+    messages = list(db.whatsapp_messages.find({"user_id": current_user["_id"]}).sort("created_at", -1).limit(50))
     return messages
 
 @router.post("/messages/send", response_model=WhatsAppMessageSchema)
 async def send_whatsapp_message(
     message_data: WhatsAppMessageCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     """Send WhatsApp message"""
     try:
         # Create message record
-        message = WhatsAppMessage(
-            user_id=current_user.id,
-            **message_data.dict()
-        )
+        message_doc = {
+            "user_id": current_user["_id"],
+            **message_data.dict(),
+            "created_at": datetime.utcnow()
+        }
         
-        db.add(message)
-        db.commit()
-        db.refresh(message)
+        result = db.whatsapp_messages.insert_one(message_doc)
+        message_doc["_id"] = result.inserted_id
         
         # Send via WhatsApp service
         success = await whatsapp_service.send_text_response(
@@ -268,32 +251,30 @@ async def send_whatsapp_message(
         )
         
         if success:
-            message.status = "sent"
+            db.whatsapp_messages.update_one(
+                {"_id": result.inserted_id},
+                {"$set": {"status": "sent"}}
+            )
         else:
-            message.status = "failed"
-            message.error_message = "Failed to send message"
+            db.whatsapp_messages.update_one(
+                {"_id": result.inserted_id},
+                {"$set": {"status": "failed", "error_message": "Failed to send message"}}
+            )
         
-        db.add(message)
-        db.commit()
-        
-        return message
+        return message_doc
         
     except Exception as e:
         logger.error(f"Error sending message: {e}")
-        db.rollback()
         raise HTTPException(status_code=500, detail="Failed to send message")
 
 # Webhook Data Routes
 @router.get("/webhooks", response_model=List[WhatsAppWebhookSchema])
 async def get_webhook_data(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     """Get webhook delivery data"""
-    webhooks = db.query(WhatsAppWebhook).order_by(
-        WhatsAppWebhook.created_at.desc()
-    ).limit(100).all()
-    
+    webhooks = list(db.whatsapp_webhooks.find().sort("created_at", -1).limit(100))
     return webhooks
 
 # Utility Routes
@@ -302,7 +283,7 @@ async def send_farming_alert(
     phone_number: str = Body(...),
     alert_message: str = Body(...),
     template_id: str = Body(None),
-    current_user: User = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """Send farming alert to farmer via WhatsApp"""
     try:
@@ -322,15 +303,23 @@ async def send_farming_alert(
 @router.get("/test/ai")
 async def test_ai_integration(
     message: str = "What crops should I plant this season?",
-    db: Session = Depends(get_db)
+    db = Depends(get_database)
 ):
-    """Test AI integration (development only)"""
+    """Test AI integration"""
     try:
-        from app.services.openai_service import openai_service
+        ai_response, response_type, audio_data = await whatsapp_service.process_incoming_message(
+            phone_number="+255123456789",
+            message=message,
+            message_type="text",
+            db=db
+        )
         
-        response = await openai_service.generate_text_response(message)
-        return {"message": message, "ai_response": response}
+        return {
+            "message": ai_response,
+            "response_type": response_type,
+            "audio_data": audio_data
+        }
         
     except Exception as e:
-        logger.error(f"AI test error: {e}")
-        raise HTTPException(status_code=500, detail="AI test failed") 
+        logger.error(f"Error testing AI: {e}")
+        raise HTTPException(status_code=500, detail="Failed to test AI integration") 

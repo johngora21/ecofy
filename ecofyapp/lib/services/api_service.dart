@@ -118,9 +118,10 @@ class ApiService {
   }
 
   // Market endpoints
-  static Future<Map<String, dynamic>> getMarketPrices({String? cropId}) async {
+  static Future<Map<String, dynamic>> getMarketPrices({String? cropId, String? date}) async {
     final queryParams = <String, String>{};
     if (cropId != null) queryParams['crop_id'] = cropId;
+    if (date != null) queryParams['date'] = date;
 
     final queryString = queryParams.entries
         .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
@@ -132,6 +133,45 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to fetch market prices: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getLatestPrices() async {
+    final response = await _makeRequest('/market/prices/latest', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch latest prices: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getPriceHistory({String? cropName, int days = 30}) async {
+    final queryParams = <String, String>{
+      'days': days.toString(),
+    };
+    if (cropName != null) queryParams['crop_name'] = cropName;
+
+    final queryString = queryParams.entries
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final response = await _makeRequest('/market/prices/history?$queryString', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch price history: ${response.body}');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getPriceSources() async {
+    final response = await _makeRequest('/market/prices/sources', 'GET');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch price sources: ${response.body}');
     }
   }
 
@@ -244,7 +284,15 @@ class ApiService {
 
   // Farms endpoints
   static Future<List<Map<String, dynamic>>> getFarms() async {
-    final response = await _makeRequest('/farms', 'GET');
+    // For farms, we don't need authentication since the backend endpoint is unauthenticated
+    final url = Uri.parse('$baseUrl/farms');
+    
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -459,4 +507,4 @@ class ApiService {
       throw Exception('Failed to fetch soil data for farm: ${response.body}');
     }
   }
-} 
+}

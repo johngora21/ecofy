@@ -142,9 +142,9 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    _buildStatCard('Size', '${widget.farm['size_in_acres'] ?? 0} acres', Icons.area_chart),
+                    _buildStatCard('Size', widget.farm['size'] ?? '0 acres', Icons.area_chart),
                     const SizedBox(width: 12),
-                    _buildStatCard('Crops', '${(widget.farm['crops'] as List?)?.length ?? 0} types', Icons.eco),
+                    _buildStatCard('Crops', '${(widget.farm['crop_history'] as List?)?.length ?? 0} types', Icons.eco),
                     const SizedBox(width: 12),
                     _buildStatCard('Status', 'Active', Icons.check_circle),
                   ],
@@ -248,6 +248,10 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
   }
 
   Widget _buildOverviewTab() {
+    // Extract soil parameters from farm data
+    final soilParams = widget.farm['soil_params'] as Map<String, dynamic>? ?? {};
+    final cropHistory = widget.farm['crop_history'] as List? ?? [];
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -258,27 +262,35 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
             Icons.info,
             [
               _buildInfoRow('Location', widget.farm['location'] ?? 'N/A'),
-              _buildInfoRow('Size', '${widget.farm['size_in_acres'] ?? 0} acres'),
-              _buildInfoRow('Description', widget.farm['description'] ?? 'No description'),
+              _buildInfoRow('Size', widget.farm['size'] ?? 'N/A'),
+              _buildInfoRow('Topography', widget.farm['topography'] ?? 'N/A'),
+              _buildInfoRow('Farm ID', widget.farm['id'] ?? 'N/A'),
             ],
           ),
           const SizedBox(height: 20),
           _buildSectionCard(
-            'Crops Grown',
+            'Crop History',
             Icons.eco,
-            (widget.farm['crops'] as List?)?.map((crop) => 
-              _buildCropChip(crop)
-            ).toList() ?? [],
+            cropHistory.isNotEmpty 
+              ? cropHistory.map((crop) => 
+                  _buildCropHistoryRow(crop)
+                ).toList()
+              : [_buildInfoRow('No crop history', 'Available')],
           ),
           const SizedBox(height: 20),
           _buildSectionCard(
             'Soil Analysis',
             Icons.science,
             [
-              _buildInfoRow('pH Level', '6.8'),
-              _buildInfoRow('Soil Type', 'Loam'),
-              _buildInfoRow('Organic Matter', '2.1%'),
-              _buildInfoRow('N-P-K Ratio', '15-10-20'),
+              _buildInfoRow('Moisture', soilParams['moisture'] ?? 'N/A'),
+              _buildInfoRow('Organic Carbon', soilParams['organic_carbon'] ?? 'N/A'),
+              _buildInfoRow('Soil Texture', soilParams['texture'] ?? 'N/A'),
+              _buildInfoRow('pH Level', soilParams['ph'] ?? 'N/A'),
+              _buildInfoRow('EC', soilParams['ec'] ?? 'N/A'),
+              _buildInfoRow('Salinity', soilParams['salinity'] ?? 'N/A'),
+              _buildInfoRow('Water Holding', soilParams['water_holding'] ?? 'N/A'),
+              _buildInfoRow('Organic Matter', soilParams['organic_matter'] ?? 'N/A'),
+              _buildInfoRow('NPK', soilParams['npk'] ?? 'N/A'),
             ],
           ),
           const SizedBox(height: 20),
@@ -297,7 +309,57 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
     );
   }
 
+  Widget _buildResourcesTab() {
+    final location = widget.farm['location'] ?? 'Unknown';
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildResourceCard(
+            'Labor Allocation',
+            'Current: 2-3 workers\nRecommended: 4-5 workers\nSeasonal workers needed during harvest',
+            Icons.people,
+            AppTheme.primaryGreen,
+          ),
+          const SizedBox(height: 16),
+          _buildResourceCard(
+            'Equipment & Tools',
+            'Tractor: Available\nIrrigation System: ${location == 'Dar es Salaam' ? 'Drip irrigation' : 'Sprinkler system'}\nStorage Facilities: Available\nSoil Testing Kit: Available',
+            Icons.build,
+            AppTheme.secondaryBlue,
+          ),
+          const SizedBox(height: 16),
+          _buildResourceCard(
+            'Financial Resources',
+            'Budget: TSh 2,500,000\nSpent: TSh 1,800,000\nRemaining: TSh 700,000\nCredit Available: TSh 1,000,000',
+            Icons.account_balance_wallet,
+            AppTheme.warningYellow,
+          ),
+          const SizedBox(height: 16),
+          _buildResourceCard(
+            'Time Management',
+            'Planting Season: Oct-Dec\nHarvesting: Mar-May\nCrop Rotation: Every 2 years\nMaintenance: Weekly',
+            Icons.schedule,
+            AppTheme.successGreen,
+          ),
+          const SizedBox(height: 16),
+          _buildResourceCard(
+            'Water Resources',
+            'Rainfall: 800-1200mm annually\nIrrigation: ${location == 'Kilimanjaro' ? 'Highland streams' : location == 'Dar es Salaam' ? 'Coastal wells' : 'River water'}\nStorage: 50,000L capacity',
+            Icons.water_drop,
+            AppTheme.secondaryBlue,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRisksTab() {
+    final location = widget.farm['location'] ?? 'Unknown';
+    final soilParams = widget.farm['soil_params'] as Map<String, dynamic>? ?? {};
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -308,15 +370,15 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
             'High',
             Icons.cloud,
             AppTheme.warningYellow,
-            'Unpredictable rainfall patterns may affect crop yields',
+            'Unpredictable rainfall patterns in ${location}. Drought risk during dry season (June-September).',
           ),
           const SizedBox(height: 16),
           _buildRiskCard(
-            'Pest Risk',
+            'Pest & Disease Risk',
             'Medium',
             Icons.bug_report,
             AppTheme.errorRed,
-            'Recent pest activity detected in neighboring farms',
+            'Fall Armyworm threat to maize crops. Regular monitoring required.',
           ),
           const SizedBox(height: 16),
           _buildRiskCard(
@@ -324,15 +386,31 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
             'Low',
             Icons.trending_down,
             AppTheme.primaryGreen,
-            'Stable market prices for current crops',
+            'Stable market prices for ${location} region. Good demand for staple crops.',
           ),
           const SizedBox(height: 16),
           _buildRiskCard(
             'Soil Degradation',
-            'Medium',
+            soilParams['organic_matter'] == 'Low' ? 'High' : 'Medium',
             Icons.terrain,
             AppTheme.warningYellow,
-            'Soil erosion risk due to slope and rainfall',
+            'Soil erosion risk due to ${widget.farm['topography'] ?? 'slope'}. Organic matter levels: ${soilParams['organic_matter'] ?? 'Unknown'}.',
+          ),
+          const SizedBox(height: 16),
+          _buildRiskCard(
+            'Water Scarcity',
+            location == 'Dodoma' ? 'High' : 'Medium',
+            Icons.water_drop,
+            AppTheme.errorRed,
+            'Water availability varies by season. ${location == 'Dodoma' ? 'Critical in semi-arid region' : 'Manageable with proper irrigation'}.',
+          ),
+          const SizedBox(height: 16),
+          _buildRiskCard(
+            'Climate Change',
+            'Medium',
+            Icons.wb_sunny,
+            AppTheme.warningYellow,
+            'Increasing temperatures and changing rainfall patterns affecting crop cycles.',
           ),
         ],
       ),
@@ -340,6 +418,9 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
   }
 
   Widget _buildRecommendationsTab() {
+    final location = widget.farm['location'] ?? 'Unknown';
+    final soilParams = widget.farm['soil_params'] as Map<String, dynamic>? ?? {};
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -347,68 +428,44 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
         children: [
           _buildRecommendationCard(
             'Irrigation System',
-            'Install drip irrigation to optimize water usage',
+            'Install drip irrigation to optimize water usage and reduce water waste',
             Icons.water_drop,
             AppTheme.secondaryBlue,
           ),
           const SizedBox(height: 16),
           _buildRecommendationCard(
             'Crop Rotation',
-            'Implement crop rotation to improve soil health',
+            'Implement crop rotation to improve soil health and reduce pest pressure',
             Icons.rotate_right,
             AppTheme.primaryGreen,
           ),
           const SizedBox(height: 16),
           _buildRecommendationCard(
             'Pest Management',
-            'Apply integrated pest management techniques',
+            'Apply integrated pest management techniques and regular monitoring',
             Icons.shield,
             AppTheme.warningYellow,
           ),
           const SizedBox(height: 16),
           _buildRecommendationCard(
             'Soil Conservation',
-            'Plant cover crops to prevent soil erosion',
+            'Plant cover crops to prevent soil erosion and improve organic matter',
             Icons.eco,
             AppTheme.successGreen,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResourcesTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildResourceCard(
-            'Labor Allocation',
-            'Current: 3 workers\nRecommended: 4 workers',
-            Icons.people,
+          const SizedBox(height: 16),
+          _buildRecommendationCard(
+            'Fertilizer Management',
+            'Use organic fertilizers to improve ${soilParams['organic_matter'] == 'Low' ? 'low' : 'medium'} organic matter levels',
+            Icons.grass,
             AppTheme.primaryGreen,
           ),
           const SizedBox(height: 16),
-          _buildResourceCard(
-            'Equipment',
-            'Tractor: Available\nIrrigation: Needed\nStorage: Available',
-            Icons.build,
+          _buildRecommendationCard(
+            'Market Diversification',
+            'Explore high-value crops for ${location} region to increase profitability',
+            Icons.trending_up,
             AppTheme.secondaryBlue,
-          ),
-          const SizedBox(height: 16),
-          _buildResourceCard(
-            'Financial',
-            'Budget: \$5,000\nSpent: \$3,200\nRemaining: \$1,800',
-            Icons.account_balance_wallet,
-            AppTheme.warningYellow,
-          ),
-          const SizedBox(height: 16),
-          _buildResourceCard(
-            'Time Management',
-            'Planting: March-April\nHarvesting: August-September',
-            Icons.schedule,
-            AppTheme.successGreen,
           ),
         ],
       ),
@@ -486,22 +543,46 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
     );
   }
 
-  Widget _buildCropChip(String crop) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8, bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryGreen.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3)),
-      ),
-      child: Text(
-        crop,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: AppTheme.primaryGreen,
-        ),
+  Widget _buildCropHistoryRow(Map<String, dynamic> crop) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              crop['crop'] ?? 'Unknown',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Season: ${crop['season'] ?? 'N/A'}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                Text(
+                  'Yield: ${crop['yield_amount'] ?? 'N/A'}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppTheme.primaryGreen,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -669,4 +750,6 @@ class _FarmDetailsScreenState extends State<FarmDetailsScreen> {
       ),
     );
   }
-} 
+}
+
+ 

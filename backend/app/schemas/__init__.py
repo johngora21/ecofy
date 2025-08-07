@@ -1,11 +1,11 @@
 # Pydantic schemas
-from .user import User, UserCreate, UserUpdate
-from .farm import Farm, FarmCreate, FarmUpdate
-from .crop import Crop, CropCreate, CropUpdate
-from .market import Market, MarketCreate, MarketUpdate
-from .order import Order, OrderCreate, OrderUpdate
-from .product import Product, ProductCreate, ProductUpdate
-from .notification import Notification, NotificationCreate, NotificationUpdate
+from .user import UserResponse as User, UserCreate, UserUpdate
+from .farm import FarmResponse as Farm, FarmCreate, FarmUpdate
+from .crop import CropResponse as Crop, CropCreate, CropUpdate
+from .market import MarketData, MarketDataResponse
+from .order import OrderResponse as Order, OrderCreate
+from .product import ProductResponse as Product, ProductCreate
+from .notification import NotificationResponse as Notification
 from .chat import ChatSession, ChatMessage, ChatMessageResponse, MessageType
 from .whatsapp import (
     WhatsAppTemplate, WhatsAppTemplateCreate, WhatsAppTemplateUpdate,

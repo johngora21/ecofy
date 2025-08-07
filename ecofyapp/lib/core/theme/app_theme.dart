@@ -12,11 +12,15 @@ class AppTheme {
   static const Color secondaryBlueDark = Color(0xFF2563EB);
   static const Color secondaryOrange = Color(0xFFFF9800);
   static const Color secondaryRed = Color(0xFFF44336);
+  static const Color secondaryGreen = Color(0xFF10B981); // Added missing color
+  static const Color accentGreen = Color(0xFF059669); // Added missing color
+  static const Color lightGreen = Color(0xFFD1FAE5); // Added missing color
   
   // Background Colors
   static const Color backgroundLight = Color(0xFFF8FAFC);
   static const Color backgroundDark = Color(0xFF121212);
   static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color background = backgroundLight; // Added missing alias
   
   // Text Colors
   static const Color textPrimary = Color(0xFF1E293B);

@@ -1,33 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
+from bson import ObjectId
+from datetime import datetime
 
 from app.api.deps import get_current_user
-from app.database import get_db
-from app.models.notification import Notification
-from app.models.user import User
-from app.schemas.notification import NotificationResponse
+from app.database import get_database
 
 router = APIRouter()
 
-@router.get("", response_model=List[NotificationResponse])
-def get_notifications(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+@router.get("", response_model=List[dict])
+async def get_notifications(
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
-    return db.query(Notification).filter(Notification.user_id == current_user.id).order_by(Notification.created_at.desc()).all()
+    notifications = list(db.notifications.find({"user_id": current_user["_id"]}).sort("created_at", -1))
+    return notifications
 
 
-@router.patch("/{notification_id}/read", response_model=NotificationResponse)
-def mark_notification_as_read(
+@router.patch("/{notification_id}/read", response_model=dict)
+async def mark_notification_as_read(
     notification_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
-    notification = db.query(Notification).filter(
-        Notification.id == notification_id,
-        Notification.user_id == current_user.id
-    ).first()
+    notification = db.notifications.find_one({
+        "_id": ObjectId(notification_id),
+        "user_id": current_user["_id"]
+    })
     
     if not notification:
         raise HTTPException(
@@ -35,24 +34,27 @@ def mark_notification_as_read(
             detail="Notification not found"
         )
     
-    notification.is_read = True
-    db.add(notification)
-    db.commit()
-    db.refresh(notification)
+    db.notifications.update_one(
+        {"_id": ObjectId(notification_id)},
+        {"$set": {"is_read": True}}
+    )
     
-    return notification
+    # Get updated notification
+    updated_notification = db.notifications.find_one({"_id": ObjectId(notification_id)})
+    return updated_notification
 
 
 @router.patch("/read-all", response_model=dict)
-def mark_all_notifications_as_read(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+async def mark_all_notifications_as_read(
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
-    db.query(Notification).filter(
-        Notification.user_id == current_user.id,
-        Notification.is_read == False
-    ).update({"is_read": True})
-    
-    db.commit()
+    db.notifications.update_many(
+        {
+            "user_id": current_user["_id"],
+            "is_read": False
+        },
+        {"$set": {"is_read": True}}
+    )
     
     return {"success": True} 

@@ -1,170 +1,98 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
+  MapPin,
+  ShoppingCart,
   Users,
-  Brain,
-  Mic,
   MessageSquare,
   BarChart3,
   Settings,
-  Database,
-  Smartphone,
-  LogOut,
-  MapPin,
-  Wifi,
-  GraduationCap,
-  UserCheck,
   Package,
-
-  TestTube,
-  Globe
+  TrendingUp
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
-    {
-      category: 'Field Operations',
-      items: [
-        { name: 'Field Teams', href: '/field-teams', icon: UserCheck },
-        { name: 'Training Programs', href: '/training-programs', icon: GraduationCap },
-        { name: 'Regional Agents', href: '/regional-agents', icon: MapPin },
-        { name: 'Soil Sampling', href: '/soil-sampling', icon: TestTube },
-      ]
-    },
-    {
-      category: 'IoT & Hardware',
-      items: [
-        { name: 'IoT Devices', href: '/iot-devices', icon: Wifi },
-        { name: 'Kit Distribution', href: '/kit-distribution', icon: Package },
-        { name: 'Device Analytics', href: '/device-analytics', icon: BarChart3 },
-        { name: 'Field Coverage', href: '/field-coverage', icon: Globe },
-      ]
-    },
-    { 
-      category: 'AI & Training',
-      items: [
-        { name: 'Training Data', href: '/training-data', icon: Database },
-        { name: 'Model Training', href: '/model-training', icon: Brain },
-        { name: 'Voice Training', href: '/voice-training', icon: Mic },
-        { name: 'User Feedback', href: '/user-feedback', icon: Users },
-      ]
-    },
-    {
-      category: 'Communication',
-      items: [
-        { name: 'WhatsApp Monitor', href: '/whatsapp-monitor', icon: MessageSquare },
-        { name: 'SMS Gateway', href: '/sms-gateway', icon: Smartphone },
-      ]
-    },
-    {
-      category: 'Marketplace & Users',
-      items: [
-        { name: 'Marketplace Management', href: '/marketplace-management', icon: Package },
-        { name: 'User Management', href: '/user-management', icon: Users },
-      ]
-    },
-    {
-      category: 'System',
-      items: [
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-        { name: 'Settings', href: '/settings', icon: Settings },
-      ]
-    }
+    { name: 'Farms', href: '/farms', icon: MapPin },
+    { name: 'Marketplace', href: '/marketplace', icon: Package },
+    { name: 'Market Price', href: '/market-price', icon: TrendingUp },
+    { name: 'Orders', href: '/orders', icon: ShoppingCart },
+    { name: 'Users', href: '/users', icon: Users },
+    { name: 'Messages', href: '/messages', icon: MessageSquare },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
-  const renderNavItem = (item) => {
-    const isActive = location.pathname === item.href;
-    return (
-      <Link
-        key={item.name}
-        to={item.href}
-        className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-          isActive
-            ? 'bg-primary/10 text-primary border-r-2 border-primary'
-            : 'text-textSecondary hover:bg-backgroundSecondary hover:text-textPrimary'
-        }`}
-      >
-        <item.icon className="w-4 h-4 mr-3" />
-        {item.name}
-      </Link>
-    );
+  // Get current page title
+  const getPageTitle = () => {
+    const currentPage = navigation.find(item => item.href === location.pathname);
+    return currentPage ? currentPage.name : 'Dashboard';
   };
 
   return (
-    <div className="flex h-screen bg-backgroundPrimary">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg flex flex-col h-full">
-        <div className="flex items-center justify-center h-16 bg-primary">
-          <h1 className="text-xl font-bold text-white">EcoFy Admin</h1>
+      <aside className={`bg-green-600 w-64 shadow-lg flex flex-col transition-all duration-200 ${sidebarOpen ? '' : 'hidden md:flex'}`}>
+        <div className="h-16 flex items-center justify-center border-b border-green-700">
+          <span className="text-xl font-bold tracking-wide text-white">Ecofy Admin</span>
         </div>
-        
-        {/* Navigation - takes up remaining space */}
-        <nav className="flex-1 overflow-y-auto mt-6 pb-20">
-          <div className="px-4 space-y-4">
-            {navigation.map((section, index) => {
-              if (section.category) {
-                return (
-                  <div key={index}>
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {section.category}
-                    </h3>
-                    <div className="mt-2 space-y-1">
-                      {section.items.map(renderNavItem)}
-                    </div>
-                  </div>
-                );
-              } else {
-                return renderNavItem(section);
-              }
-            })}
-          </div>
+        <nav className="flex-1 py-4">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={`flex items-center px-6 py-3 text-white transition-colors ${location.pathname === item.href ? 'bg-white text-green-800 font-bold rounded-lg shadow-lg' : 'hover:bg-green-500'}`}
+            >
+              <item.icon className={`w-5 h-5 mr-3 ${location.pathname === item.href ? 'text-green-800' : 'text-white'}`} />
+              {item.name}
+            </Link>
+          ))}
         </nav>
-        
-        {/* Bottom section - fixed at bottom */}
-        <div className="border-t border-gray-200 p-4 bg-white">
-          <button className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors">
-            <LogOut className="w-5 h-5 mr-3" />
-            Sign Out
-          </button>
-        </div>
-      </div>
+      </aside>
 
-      {/* Main content */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-textPrimary">
-              EcoFy Admin Dashboard
-            </h1>
+        <header className="bg-white shadow-sm border-b">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900 ml-4">{getPageTitle()}</h1>
+            </div>
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-textSecondary">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
-                <span>System Online</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-textSecondary">
-                <Wifi className="w-4 h-4" />
-                <span>124 IoT Devices Active</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-textSecondary">
-                <UserCheck className="w-4 h-4" />
-                <span>18 Field Teams</span>
+              <div className="relative">
+                <button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                  <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">A</span>
+                  </div>
+                  <span className="hidden md:block">Admin</span>
+                </button>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-backgroundPrimary p-6">
-          {children}
+        {/* Page Content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
+          <div className="container mx-auto px-6 py-8">
+            {children}
+          </div>
         </main>
       </div>
     </div>
   );
 };
 
-export default Layout; 
+export default Layout;

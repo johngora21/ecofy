@@ -1,179 +1,187 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
-from math import ceil
+from bson import ObjectId
+from datetime import datetime
 
 from app.api.deps import get_current_user
-from app.database import get_db
-from app.models.product import Product
-from app.models.user import User
-from app.schemas.product import ProductCreate, ProductResponse, ProductBase
+from app.database import get_database
+from app.utils.mongo_utils import serialize_mongo_doc
 
 router = APIRouter()
 
-@router.get("/products", response_model=dict)
-def get_products(
-    category: Optional[str] = Query(None),
-    search: Optional[str] = Query(None),
+@router.get("/products")
+async def get_products(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    category: Optional[str] = None,
+    seller_id: Optional[str] = None,
+    db = Depends(get_database)
 ):
-    query = db.query(Product)
-    
-    # Apply filters
-    if category:
-        query = query.filter(Product.category == category)
-    
-    if search:
-        query = query.filter(Product.name.ilike(f"%{search}%"))
-    
-    # Count total
-    total = query.count()
-    
-    # Paginate
-    query = query.offset((page - 1) * limit).limit(limit)
-    
-    # Get products
-    products = query.all()
-    
-    # Get product items with seller names
-    items = []
-    for product in products:
-        seller = db.query(User).filter(User.id == product.seller_id).first()
-        seller_name = seller.full_name if seller else "Unknown"
+    """Get marketplace products with pagination and filtering"""
+    try:
+        # Build filter
+        filter_query = {}
+        if category:
+            filter_query["category"] = category
+        if seller_id:
+            filter_query["seller_id"] = ObjectId(seller_id)
         
-        product_dict = {**product.__dict__}
-        if "_sa_instance_state" in product_dict:
-            del product_dict["_sa_instance_state"]
+        # Calculate skip
+        skip = (page - 1) * limit
         
-        product_dict["seller_name"] = seller_name
-        items.append(product_dict)
-    
-    # Calculate total pages
-    pages = ceil(total / limit) if total > 0 else 1
-    
-    return {
-        "items": items,
-        "total": total,
-        "page": page,
-        "pages": pages
-    }
+        # Get total count
+        total = db.products.count_documents(filter_query)
+        
+        # Get products
+        products_cursor = db.products.find(filter_query).skip(skip).limit(limit)
+        products = [serialize_mongo_doc(product) for product in products_cursor]
+        
+        return {
+            "items": products,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": (total + limit - 1) // limit
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching products: {e}")
 
+@router.get("/products/{product_id}")
+async def get_product(product_id: str, db = Depends(get_database)):
+    """Get a specific product by ID"""
+    try:
+        product = db.products.find_one({"_id": ObjectId(product_id)})
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        return serialize_mongo_doc(product)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching product: {e}")
 
-@router.post("/products", response_model=ProductResponse)
-def create_product(
-    product_in: ProductCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+@router.get("/orders")
+async def get_orders(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    status: Optional[str] = None,
+    user_id: Optional[str] = None,
+    db = Depends(get_database)
 ):
-    product = Product(
-        seller_id=current_user.id,
-        name=product_in.name,
-        description=product_in.description,
-        price=product_in.price,
-        quantity=product_in.quantity,
-        unit=product_in.unit,
-        category=product_in.category.value,
-        location=product_in.location,
-        images=product_in.images
-    )
-    
-    db.add(product)
-    db.commit()
-    db.refresh(product)
-    
-    # Get seller name
-    seller = db.query(User).filter(User.id == current_user.id).first()
-    
-    return {
-        **product.__dict__,
-        "seller_name": seller.full_name
-    }
+    """Get marketplace orders with pagination and filtering"""
+    try:
+        # Build filter
+        filter_query = {}
+        if status:
+            filter_query["status"] = status
+        if user_id:
+            filter_query["user_id"] = ObjectId(user_id)
+        
+        # Calculate skip
+        skip = (page - 1) * limit
+        
+        # Get total count
+        total = db.orders.count_documents(filter_query)
+        
+        # Get orders
+        orders_cursor = db.orders.find(filter_query).skip(skip).limit(limit)
+        orders = [serialize_mongo_doc(order) for order in orders_cursor]
+        
+        return {
+            "items": orders,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": (total + limit - 1) // limit
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching orders: {e}")
 
+@router.get("/orders/{order_id}")
+async def get_order(order_id: str, db = Depends(get_database)):
+    """Get a specific order by ID"""
+    try:
+        order = db.orders.find_one({"_id": ObjectId(order_id)})
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        return serialize_mongo_doc(order)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching order: {e}")
 
-@router.get("/products/{product_id}", response_model=ProductResponse)
-def get_product(
-    product_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+@router.get("/sellers")
+async def get_sellers(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    db = Depends(get_database)
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found"
+    """Get marketplace sellers with pagination"""
+    try:
+        # Calculate skip
+        skip = (page - 1) * limit
+        
+        # Get total count
+        total = db.users.count_documents({"role": "supplier"})
+        
+        # Get sellers (users with supplier role)
+        sellers_cursor = db.users.find({"role": "supplier"}).skip(skip).limit(limit)
+        sellers = [serialize_mongo_doc(seller) for seller in sellers_cursor]
+        
+        return {
+            "items": sellers,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": (total + limit - 1) // limit
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching sellers: {e}")
+
+@router.get("/statistics")
+async def get_marketplace_statistics(db = Depends(get_database)):
+    """Get marketplace statistics"""
+    try:
+        # Get counts
+        total_products = db.products.count_documents({})
+        total_orders = db.orders.count_documents({})
+        total_sellers = db.users.count_documents({"role": "supplier"})
+        
+        # Get recent orders
+        recent_orders = list(db.orders.find().sort("created_at", -1).limit(5))
+        recent_orders = [serialize_mongo_doc(order) for order in recent_orders]
+        
+        # Get top products
+        top_products = list(db.products.find().sort("sales_count", -1).limit(5))
+        top_products = [serialize_mongo_doc(product) for product in top_products]
+        
+        return {
+            "total_products": total_products,
+            "total_orders": total_orders,
+            "total_sellers": total_sellers,
+            "recent_orders": recent_orders,
+            "top_products": top_products
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching statistics: {e}")
+
+@router.put("/orders/{order_id}/status")
+async def update_order_status(
+    order_id: str,
+    status_data: dict,
+    db = Depends(get_database)
+):
+    """Update order status"""
+    try:
+        new_status = status_data.get("status")
+        if not new_status:
+            raise HTTPException(status_code=400, detail="Status is required")
+        
+        result = db.orders.update_one(
+            {"_id": ObjectId(order_id)},
+            {"$set": {"status": new_status}}
         )
-    
-    # Get seller name
-    seller = db.query(User).filter(User.id == product.seller_id).first()
-    seller_name = seller.full_name if seller else "Unknown"
-    
-    return {
-        **product.__dict__,
-        "seller_name": seller_name
-    }
-
-
-@router.put("/products/{product_id}", response_model=ProductResponse)
-def update_product(
-    product_id: str,
-    product_in: ProductBase,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.seller_id == current_user.id
-    ).first()
-    
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found or you don't have permission to update it"
-        )
-    
-    # Update product
-    product.name = product_in.name
-    product.description = product_in.description
-    product.price = product_in.price
-    product.quantity = product_in.quantity
-    product.unit = product_in.unit
-    product.category = product_in.category.value
-    product.location = product_in.location
-    
-    db.add(product)
-    db.commit()
-    db.refresh(product)
-    
-    # Get seller name
-    seller = db.query(User).filter(User.id == current_user.id).first()
-    
-    return {
-        **product.__dict__,
-        "seller_name": seller.full_name
-    }
-
-
-@router.delete("/products/{product_id}", response_model=dict)
-def delete_product(
-    product_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    product = db.query(Product).filter(
-        Product.id == product_id,
-        Product.seller_id == current_user.id
-    ).first()
-    
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Product not found or you don't have permission to delete it"
-        )
-    
-    db.delete(product)
-    db.commit()
-    
-    return {"success": True} 
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        return {"success": True, "message": "Order status updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating order status: {e}") 

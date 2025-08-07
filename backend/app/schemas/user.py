@@ -20,6 +20,13 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    location: Optional[str] = None
+    preferred_language: Optional[str] = None
+
 class UserResponse(UserBase):
     id: str
     role: UserRole
@@ -30,6 +37,13 @@ class UserResponse(UserBase):
         orm_mode = True
 
 class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse 
     email: EmailStr
     password: str
 

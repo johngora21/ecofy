@@ -1,21 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.orm import Session
 from typing import List
+from bson import ObjectId
+from datetime import datetime
 
 from app.api.deps import get_current_user
-from app.database import get_db
-from app.models.order import Order
-from app.models.product import Product
-from app.models.user import User
+from app.database import get_database
 from app.schemas.order import OrderCreate, OrderResponse, OrderStatus
 
 router = APIRouter()
 
 @router.post("", response_model=OrderResponse)
-def create_order(
+async def create_order(
     order_in: OrderCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     # Calculate total amount
     total_amount = 0
@@ -23,22 +21,24 @@ def create_order(
     
     for item in order_in.items:
         # Check if product exists and has enough quantity
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        product = db.products.find_one({"_id": ObjectId(item.product_id)})
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Product with ID {item.product_id} not found"
             )
         
-        if product.quantity < item.quantity:
+        if product["quantity"] < item.quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Not enough quantity available for product {product.name}"
+                detail=f"Not enough quantity available for product {product['name']}"
             )
         
         # Update product quantity
-        product.quantity -= item.quantity
-        db.add(product)
+        db.products.update_one(
+            {"_id": ObjectId(item.product_id)},
+            {"$inc": {"quantity": -item.quantity}}
+        )
         
         # Add to total
         item_total = item.quantity * item.unit_price
@@ -48,40 +48,42 @@ def create_order(
         items.append(item.dict())
     
     # Create order
-    order = Order(
-        user_id=current_user.id,
-        items=items,
-        total_amount=total_amount,
-        status=OrderStatus.PENDING.value,
-        delivery_address=order_in.delivery_address,
-        payment_method=order_in.payment_method
-    )
+    order_doc = {
+        "user_id": current_user["_id"],
+        "items": items,
+        "total_amount": total_amount,
+        "status": OrderStatus.PENDING.value,
+        "delivery_address": order_in.delivery_address,
+        "payment_method": order_in.payment_method,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
     
-    db.add(order)
-    db.commit()
-    db.refresh(order)
+    result = db.orders.insert_one(order_doc)
+    order_doc["_id"] = result.inserted_id
     
-    return order
+    return order_doc
 
 
 @router.get("", response_model=List[OrderResponse])
-def get_orders(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+async def get_orders(
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
-    return db.query(Order).filter(Order.user_id == current_user.id).all()
+    orders = list(db.orders.find({"user_id": current_user["_id"]}))
+    return orders
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order(
+async def get_order(
     order_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
-    order = db.query(Order).filter(
-        Order.id == order_id,
-        Order.user_id == current_user.id
-    ).first()
+    order = db.orders.find_one({
+        "_id": ObjectId(order_id),
+        "user_id": current_user["_id"]
+    })
     
     if not order:
         raise HTTPException(
@@ -93,17 +95,17 @@ def get_order(
 
 
 @router.patch("/{order_id}/status", response_model=OrderResponse)
-def update_order_status(
+async def update_order_status(
     order_id: str,
     status_data: dict = Body(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     # Get order
-    order = db.query(Order).filter(
-        Order.id == order_id,
-        Order.user_id == current_user.id
-    ).first()
+    order = db.orders.find_one({
+        "_id": ObjectId(order_id),
+        "user_id": current_user["_id"]
+    })
     
     if not order:
         raise HTTPException(
@@ -119,9 +121,16 @@ def update_order_status(
             detail=f"Invalid status. Must be one of: {', '.join([e.value for e in OrderStatus])}"
         )
     
-    order.status = new_status
-    db.add(order)
-    db.commit()
-    db.refresh(order)
+    db.orders.update_one(
+        {"_id": ObjectId(order_id)},
+        {
+            "$set": {
+                "status": new_status,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
     
-    return order 
+    # Get updated order
+    updated_order = db.orders.find_one({"_id": ObjectId(order_id)})
+    return updated_order 

@@ -43,11 +43,25 @@ class FarmCreate(BaseModel):
     topography: Optional[str] = None
     coordinates: Coordinates
     farm_boundary: Optional[List[FarmBoundary]] = None
- 
+
+class FarmUpdate(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    size: Optional[str] = None
+    topography: Optional[str] = None
+    coordinates: Optional[Coordinates] = None
+    farm_boundary: Optional[List[FarmBoundary]] = None
 
 class FarmResponse(FarmBase):
     id: str
     user_id: str
+    image: Optional[str] = None
+    crop_history: List[CropHistory] = []
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True 
     image: Optional[str] = None
     crop_history: List[CropHistory] = []
     created_at: datetime

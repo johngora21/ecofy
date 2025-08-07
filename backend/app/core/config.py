@@ -14,8 +14,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
-    # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./ecofy.db")
+    # MongoDB Database
+    MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb+srv://hollohuh:YqAQBikMT3be2Ggk@cluster0.bgs2zbf.mongodb.net/ecofy?retryWrites=true&w=majority")
+    MONGODB_DATABASE: str = os.getenv("MONGODB_DATABASE", "ecofy")
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
@@ -40,4 +41,5 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
+settings = Settings() 
 settings = Settings() 

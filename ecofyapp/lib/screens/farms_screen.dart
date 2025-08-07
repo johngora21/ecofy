@@ -31,21 +31,184 @@ class _FarmsScreenState extends State<FarmsScreen> {
     });
 
     try {
-      final farmsData = await ApiService.getFarms();
+      final farms = await ApiService.getFarms();
       setState(() {
-        _farms = farmsData;
+        _farms = farms;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = 'Failed to load farms: $e';
         _isLoading = false;
       });
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: Text(
+          'My Farms',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: AppTheme.background,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add, color: AppTheme.primaryGreen),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddFarmScreen()),
+              );
+              if (result == true) {
+                _loadFarms();
+              }
+            },
+          ),
+        ],
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryGreen),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppTheme.textSecondary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: AppTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadFarms,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Retry',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_farms.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.agriculture_outlined,
+              size: 64,
+              color: AppTheme.textSecondary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No farms yet',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Add your first farm to get started',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: AppTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddFarmScreen()),
+                );
+                if (result == true) {
+                  _loadFarms();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Add Farm',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadFarms,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _farms.length,
+        itemBuilder: (context, index) {
+          final farm = _farms[index];
+          return _buildFarmCard(farm);
+        },
+      ),
+    );
+  }
+
   Widget _buildFarmCard(Map<String, dynamic> farm) {
-    return GestureDetector(
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
       onTap: () {
         Navigator.push(
           context,
@@ -54,47 +217,20 @@ class _FarmsScreenState extends State<FarmsScreen> {
           ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.shadowLight,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.agriculture,
-                      color: AppTheme.primaryGreen,
-                      size: 30,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          farm['name'] ?? 'Unknown Farm',
+                          farm['name'] ?? 'Unnamed Farm',
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -109,43 +245,56 @@ class _FarmsScreenState extends State<FarmsScreen> {
                             color: AppTheme.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Size: ${farm['size_in_acres']?.toString() ?? '0'} acres',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
                       ],
                     ),
                   ),
                   PopupMenuButton<String>(
-                    onSelected: (value) {
+                    icon: Icon(Icons.more_vert, color: AppTheme.textSecondary),
+                    onSelected: (value) async {
                       if (value == 'edit') {
-                        _showEditFarmDialog(farm);
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditFarmScreen(farm: farm),
+                          ),
+                        );
+                        if (result == true) {
+                          _loadFarms();
+                        }
                       } else if (value == 'delete') {
-                        _showDeleteConfirmation(farm);
+                        _showDeleteDialog(farm);
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, size: 16),
-                            SizedBox(width: 8),
-                            Text('Edit'),
+                            Icon(Icons.edit, color: AppTheme.textSecondary),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Edit',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 16, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: Colors.red)),
+                            Icon(Icons.delete, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Delete',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.red,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -153,36 +302,64 @@ class _FarmsScreenState extends State<FarmsScreen> {
                   ),
                 ],
               ),
-              if (farm['crops'] != null && (farm['crops'] as List).isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _buildInfoChip(
+                    Icons.area_chart,
+                    farm['size'] ?? 'Unknown Size',
+                    AppTheme.primaryGreen,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildInfoChip(
+                    Icons.landscape,
+                    farm['topography'] ?? 'Unknown Topography',
+                    AppTheme.secondaryGreen,
+                  ),
+                ],
+              ),
+              if (farm['soil_params'] != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildInfoChip(
+                      Icons.science,
+                      'pH: ${farm['soil_params']['ph'] ?? 'N/A'}',
+                      AppTheme.accentGreen,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildInfoChip(
+                      Icons.water_drop,
+                      'Moisture: ${farm['soil_params']['moisture'] ?? 'N/A'}',
+                      AppTheme.lightGreen,
+                    ),
+                  ],
+                ),
+              ],
+              if (farm['crop_history'] != null && farm['crop_history'].isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Crops:',
+                  'Recent Crops:',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: AppTheme.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Wrap(
                   spacing: 8,
-                  runSpacing: 4,
-                  children: (farm['crops'] as List)
-                      .map((crop) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryGreen.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3)),
-                            ),
-                            child: Text(
-                              crop.toString(),
+                  children: (farm['crop_history'] as List)
+                      .take(3)
+                      .map((crop) => Chip(
+                            label: Text(
+                              crop['crop'] ?? 'Unknown',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 color: AppTheme.primaryGreen,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
+                            backgroundColor: AppTheme.lightGreen.withOpacity(0.2),
                           ))
                       .toList(),
                 ),
@@ -194,154 +371,104 @@ class _FarmsScreenState extends State<FarmsScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildInfoChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.agriculture_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 4),
           Text(
-            'No farms yet',
+            label,
             style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w500,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Add your first farm to get started',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Colors.grey[500],
-            ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  void _showAddFarmDialog() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const AddFarmScreen(),
-      ),
-    ).then((result) {
-      if (result == true) {
-        _loadFarms(); // Reload farms after adding
-      }
-    });
-  }
-
-  void _showEditFarmDialog(Map<String, dynamic> farm) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditFarmScreen(farm: farm),
-      ),
-    ).then((result) {
-      if (result == true) {
-        _loadFarms(); // Reload farms after editing
-      }
-    });
-  }
-
-  void _showDeleteConfirmation(Map<String, dynamic> farm) {
+  void _showDeleteDialog(Map<String, dynamic> farm) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
           'Delete Farm',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
         ),
-        content: Text('Are you sure you want to delete "${farm['name']}"?'),
+        content: Text(
+          'Are you sure you want to delete "${farm['name']}"? This action cannot be undone.',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: AppTheme.textSecondary,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: AppTheme.textSecondary,
+              ),
+            ),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () async {
-              try {
-                await ApiService.deleteFarm(farm['id'].toString());
                 Navigator.pop(context);
-                _loadFarms();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Farm deleted successfully!')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to delete farm: $e')),
-                );
-              }
+              await _deleteFarm(farm['_id']);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(
+              'Delete',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Failed to load farms',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _error!,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: AppTheme.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadFarms,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                )
-              : _farms.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      itemCount: _farms.length,
-                      itemBuilder: (context, index) {
-                        return _buildFarmCard(_farms[index]);
-                      },
-                    ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddFarmDialog,
-        backgroundColor: AppTheme.primaryGreen,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add, size: 28),
-      ),
-    );
+  Future<void> _deleteFarm(String farmId) async {
+    try {
+      await ApiService.deleteFarm(farmId);
+      _loadFarms();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Farm deleted successfully',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: AppTheme.primaryGreen,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete farm: $e',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 } 

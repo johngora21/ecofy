@@ -293,38 +293,6 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
     },
   ];
 
-  Widget _buildTabButton(String id, String label) {
-    final isSelected = _activeTab == id;
-    
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _activeTab = id;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: 8.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryGreen : AppTheme.surfaceLight,
-          borderRadius: BorderRadius.circular(20.0),
-          border: Border.all(
-            color: isSelected ? AppTheme.primaryGreen : AppTheme.borderLight,
-            width: 1.5,
-          ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppTheme.textPrimary,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPriceChart() {
     if (_marketTrends.isEmpty) {
       return Container(
@@ -1401,16 +1369,41 @@ class _MarketPriceScreenState extends State<MarketPriceScreen> {
                 const SizedBox(height: 20),
                 
                 // Horizontal Tab Buttons
-                SizedBox(
-                  height: 40,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _tabs.length,
-                    itemBuilder: (context, index) {
-                      final tab = _tabs[index];
-                      return _buildTabButton(tab['id']!, tab['label']!);
-                    },
-                  ),
+                Row(
+                  children: _tabs.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final tab = entry.value;
+                    final isSelected = _activeTab == tab['id'];
+                    
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _activeTab = tab['id']!;
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 4),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            tab['label']!,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: isSelected ? Colors.white : AppTheme.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),

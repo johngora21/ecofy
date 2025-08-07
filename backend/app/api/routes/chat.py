@@ -1,13 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body, UploadFile, File
-from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+from bson import ObjectId
 import io
 
 from app.api.deps import get_current_user
-from app.database import get_db
-from app.models.chat import ChatSession, ChatMessage
-from app.models.user import User
+from app.database import get_database
 from app.schemas.chat import ChatSession as ChatSessionSchema
 from app.schemas.chat import ChatMessage as ChatMessageSchema
 from app.schemas.chat import ChatMessageResponse, MessageType
@@ -16,44 +14,47 @@ from app.services.openai_service import openai_service
 router = APIRouter()
 
 @router.get("/sessions", response_model=List[ChatSessionSchema])
-def get_chat_sessions(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+async def get_chat_sessions(
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
-    return db.query(ChatSession).filter(ChatSession.user_id == current_user.id).order_by(ChatSession.created_at.desc()).all()
+    sessions = list(db.chat_sessions.find({"user_id": current_user["_id"]}).sort("created_at", -1))
+    return sessions
 
 
 @router.post("/sessions", response_model=ChatSessionSchema)
-def create_chat_session(
+async def create_chat_session(
     session_data: dict = Body(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     title = session_data.get("title", "New Conversation")
     
-    session = ChatSession(
-        user_id=current_user.id,
-        title=title
-    )
+    session_doc = {
+        "user_id": current_user["_id"],
+        "title": title,
+        "last_message": None,
+        "last_message_time": None,
+        "created_at": datetime.utcnow()
+    }
     
-    db.add(session)
-    db.commit()
-    db.refresh(session)
+    result = db.chat_sessions.insert_one(session_doc)
+    session_doc["_id"] = result.inserted_id
     
-    return session
+    return session_doc
 
 
 @router.get("/sessions/{session_id}/messages", response_model=List[ChatMessageResponse])
-def get_chat_messages(
+async def get_chat_messages(
     session_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     # Check if session exists and belongs to user
-    session = db.query(ChatSession).filter(
-        ChatSession.id == session_id,
-        ChatSession.user_id == current_user.id
-    ).first()
+    session = db.chat_sessions.find_one({
+        "_id": ObjectId(session_id),
+        "user_id": current_user["_id"]
+    })
     
     if not session:
         raise HTTPException(
@@ -61,21 +62,22 @@ def get_chat_messages(
             detail="Chat session not found"
         )
     
-    return db.query(ChatMessage).filter(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at).all()
+    messages = list(db.chat_messages.find({"session_id": session_id}).sort("created_at", 1))
+    return messages
 
 
 @router.post("/sessions/{session_id}/messages", response_model=ChatMessageResponse)
 async def create_chat_message(
     session_id: str,
     message: ChatMessageSchema,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     # Check if session exists and belongs to user
-    session = db.query(ChatSession).filter(
-        ChatSession.id == session_id,
-        ChatSession.user_id == current_user.id
-    ).first()
+    session = db.chat_sessions.find_one({
+        "_id": ObjectId(session_id),
+        "user_id": current_user["_id"]
+    })
     
     if not session:
         raise HTTPException(
@@ -84,55 +86,78 @@ async def create_chat_message(
         )
     
     # Create user message
-    user_message = ChatMessage(
-        session_id=session_id,
-        user_id=current_user.id,
-        content=message.content,
-        type=message.type.value,
-        file_url=message.file_url,
-        is_ai=False
-    )
+    user_message_doc = {
+        "session_id": session_id,
+        "user_id": current_user["_id"],
+        "content": message.content,
+        "type": message.type.value,
+        "file_url": message.file_url,
+        "is_ai": False,
+        "created_at": datetime.utcnow()
+    }
     
-    db.add(user_message)
+    user_result = db.chat_messages.insert_one(user_message_doc)
+    user_message_doc["_id"] = user_result.inserted_id
     
     # Update session with last message
-    session.last_message = message.content
-    session.last_message_time = datetime.utcnow()
-    db.add(session)
-    
-    db.commit()
-    db.refresh(user_message)
-    
-    # Process message with OpenAI GPT-4o
-    ai_content = await openai_service.generate_text_response(message.content, current_user, db)
-    
-    # Create AI response message
-    ai_message = ChatMessage(
-        session_id=session_id,
-        content=ai_content,
-        type=MessageType.TEXT.value,
-        is_ai=True
+    db.chat_sessions.update_one(
+        {"_id": ObjectId(session_id)},
+        {
+            "$set": {
+                "last_message": message.content,
+                "last_message_time": datetime.utcnow()
+            }
+        }
     )
     
-    db.add(ai_message)
-    db.commit()
-    db.refresh(ai_message)
-    
-    return user_message
+    # Generate AI response
+    try:
+        ai_response = await openai_service.generate_text_response(message.content)
+        
+        # Create AI message
+        ai_message_doc = {
+            "session_id": session_id,
+            "user_id": None,
+            "content": ai_response,
+            "type": MessageType.TEXT.value,
+            "file_url": None,
+            "is_ai": True,
+            "created_at": datetime.utcnow()
+        }
+        
+        ai_result = db.chat_messages.insert_one(ai_message_doc)
+        ai_message_doc["_id"] = ai_result.inserted_id
+        
+        # Update session with AI response
+        db.chat_sessions.update_one(
+            {"_id": ObjectId(session_id)},
+            {
+                "$set": {
+                    "last_message": ai_response,
+                    "last_message_time": datetime.utcnow()
+                }
+            }
+        )
+        
+        return user_message_doc
+        
+    except Exception as e:
+        # If AI fails, still return user message
+        return user_message_doc
 
 
 @router.post("/sessions/{session_id}/audio", response_model=ChatMessageResponse)
 async def create_audio_chat_message(
     session_id: str,
     audio_file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
 ):
     # Check if session exists and belongs to user
-    session = db.query(ChatSession).filter(
-        ChatSession.id == session_id,
-        ChatSession.user_id == current_user.id
-    ).first()
+    session = db.chat_sessions.find_one({
+        "_id": ObjectId(session_id),
+        "user_id": current_user["_id"]
+    })
     
     if not session:
         raise HTTPException(
@@ -140,65 +165,95 @@ async def create_audio_chat_message(
             detail="Chat session not found"
         )
     
-    # Read audio file content
-    content_type = audio_file.content_type
+    # Read audio file
     audio_bytes = await audio_file.read()
     
-    if not audio_bytes:
-        raise HTTPException(status_code=400, detail="Empty audio file uploaded")
-    
-    # In a real application, you would save the file to storage and generate a URL
-    # For simplicity, we'll use a placeholder URL
-    file_url = f"/uploads/chat/{session_id}/{audio_file.filename}"
-    
-    # Create user message for the audio
-    user_message = ChatMessage(
-        session_id=session_id,
-        user_id=current_user.id,
-        content="[Audio message]",
-        type=MessageType.FILE.value,
-        file_url=file_url,
-        is_ai=False
-    )
-    
-    db.add(user_message)
-    
-    # Update session with last message
-    session.last_message = "[Audio message]"
-    session.last_message_time = datetime.utcnow()
-    db.add(session)
-    
-    db.commit()
-    db.refresh(user_message)
-    
+    # Transcribe audio
     try:
-        # Process audio with OpenAI (Whisper + GPT-4o + TTS)
-        ai_response_text, ai_audio_bytes = await openai_service.process_voice_message(audio_bytes, current_user, db)
+        transcription = await openai_service.transcribe_audio(audio_bytes)
         
-        # Save AI audio response (in a real app, save to storage)
-        ai_file_url = f"/uploads/chat/{session_id}/ai_response_{datetime.utcnow().timestamp()}.mp3"
+        # Create user message with transcription
+        user_message_doc = {
+            "session_id": session_id,
+            "user_id": current_user["_id"],
+            "content": transcription,
+            "type": MessageType.AUDIO.value,
+            "file_url": None,  # In production, upload to cloud storage
+            "is_ai": False,
+            "created_at": datetime.utcnow()
+        }
         
-        # Create AI response message
-        ai_message = ChatMessage(
-            session_id=session_id,
-            content="[AI audio response]",
-            type=MessageType.FILE.value,
-            file_url=ai_file_url,
-            is_ai=True
+        user_result = db.chat_messages.insert_one(user_message_doc)
+        user_message_doc["_id"] = user_result.inserted_id
+        
+        # Update session
+        db.chat_sessions.update_one(
+            {"_id": ObjectId(session_id)},
+            {
+                "$set": {
+                    "last_message": transcription,
+                    "last_message_time": datetime.utcnow()
+                }
+            }
         )
         
-        db.add(ai_message)
-        db.commit()
+        # Generate AI response
+        ai_response = await openai_service.generate_text_response(transcription)
+        
+        # Create AI message
+        ai_message_doc = {
+            "session_id": session_id,
+            "user_id": None,
+            "content": ai_response,
+            "type": MessageType.TEXT.value,
+            "file_url": None,
+            "is_ai": True,
+            "created_at": datetime.utcnow()
+        }
+        
+        ai_result = db.chat_messages.insert_one(ai_message_doc)
+        ai_message_doc["_id"] = ai_result.inserted_id
+        
+        # Update session with AI response
+        db.chat_sessions.update_one(
+            {"_id": ObjectId(session_id)},
+            {
+                "$set": {
+                    "last_message": ai_response,
+                    "last_message_time": datetime.utcnow()
+                }
+            }
+        )
+        
+        return user_message_doc
+        
     except Exception as e:
-        # If audio processing fails, create a text response instead
-        ai_message = ChatMessage(
-            session_id=session_id,
-            content=f"Sorry, I couldn't process your audio. Error: {str(e)}",
-            type=MessageType.TEXT.value,
-            is_ai=True
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Audio processing failed: {str(e)}"
         )
-        
-        db.add(ai_message)
-        db.commit()
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_chat_session(
+    session_id: str,
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_database)
+):
+    # Check if session exists and belongs to user
+    session = db.chat_sessions.find_one({
+        "_id": ObjectId(session_id),
+        "user_id": current_user["_id"]
+    })
     
-    return user_message 
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat session not found"
+        )
+    
+    # Delete session and all messages
+    db.chat_sessions.delete_one({"_id": ObjectId(session_id)})
+    db.chat_messages.delete_many({"session_id": session_id})
+    
+    return {"message": "Chat session deleted successfully"} 

@@ -1,22 +1,45 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from app.core.config import settings
 
-load_dotenv()
+class Database:
+    client: MongoClient = None
+    database = None
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ecofy.db")
+db = Database()
 
-# SQLAlchemy
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
+def connect_to_mongo():
+    """Create database connection."""
     try:
-        yield db
-    finally:
-        db.close() 
+        # Configure MongoDB client with simpler settings
+        db.client = MongoClient(
+            settings.MONGODB_URL,
+            server_api=ServerApi('1'),
+            connectTimeoutMS=30000,
+            socketTimeoutMS=30000
+        )
+        db.database = db.client[settings.MONGODB_DATABASE]
+        print("Connected to MongoDB.")
+    except Exception as e:
+        print(f"Error connecting to MongoDB: {e}")
+        # Fallback to a simpler connection
+        try:
+            db.client = MongoClient(
+                settings.MONGODB_URL,
+                server_api=ServerApi('1')
+            )
+            db.database = db.client[settings.MONGODB_DATABASE]
+            print("Connected to MongoDB with fallback settings.")
+        except Exception as e2:
+            print(f"Fallback connection also failed: {e2}")
+            raise
+
+def close_mongo_connection():
+    """Close database connection."""
+    if db.client:
+        db.client.close()
+        print("Disconnected from MongoDB.")
+
+def get_database():
+    """Get database instance."""
+    return db.database

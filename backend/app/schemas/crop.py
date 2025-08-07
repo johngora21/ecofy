@@ -35,6 +35,28 @@ class CropBase(BaseModel):
     soil_requirements: SoilRequirements
     risks: List[Risk]
 
+class CropCreate(CropBase):
+    pass
+
+class CropUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    optimal_planting_time: Optional[str] = None
+    climate_requirements: Optional[ClimateRequirements] = None
+    soil_requirements: Optional[SoilRequirements] = None
+    risks: Optional[List[Risk]] = None
+
+class CropResponse(CropBase):
+    id: str
+    image: Optional[str] = None
+
+    class Config:
+        orm_mode = True 
+    optimal_planting_time: Optional[str] = None
+    climate_requirements: Optional[ClimateRequirements] = None
+    soil_requirements: Optional[SoilRequirements] = None
+    risks: Optional[List[Risk]] = None
+
 class CropResponse(CropBase):
     id: str
     image: Optional[str] = None

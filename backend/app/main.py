@@ -1,62 +1,63 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-import uvicorn
+from contextlib import asynccontextmanager
 import logging
-import sys
 
-from app.api.routes import auth, users, farms, crops, market, marketplace, orders, notifications, chat, external, whatsapp, admin
-from app.core.config import settings
-from app.database import engine, Base
+from app.database import connect_to_mongo, close_mongo_connection
+from app.api.routes import users, farms, crops, marketplace, market
+from app.services.scraper_service import setup_scraper_scheduler
+from app.services.monitor_service import start_document_monitor
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
-# Get logger for this file
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.info("Starting Ecofy API")
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    connect_to_mongo()
+    
+    # Setup scraper scheduler
+    from app.database import get_database
+    db = get_database()
+    setup_scraper_scheduler(db)
+    
+    # Start document monitor for automatic new PDF detection
+    logger.info("Starting document monitor...")
+    monitor_thread = start_document_monitor()
+    
+    yield
+    
+    # Shutdown
+    close_mongo_connection()
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    title="EcoFy API",
+    description="API for EcoFy agricultural management system",
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# Set up CORS
-if settings.BACKEND_CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Include API routes
-app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
-app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
-app.include_router(farms.router, prefix=f"{settings.API_V1_STR}/farms", tags=["Farms"])
-app.include_router(crops.router, prefix=f"{settings.API_V1_STR}/crops", tags=["Crops"])
-app.include_router(market.router, prefix=f"{settings.API_V1_STR}/market", tags=["Market"])
-app.include_router(marketplace.router, prefix=f"{settings.API_V1_STR}/marketplace", tags=["Marketplace"])
-app.include_router(orders.router, prefix=f"{settings.API_V1_STR}/orders", tags=["Orders"])
-app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["Notifications"])
-app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["Chat"])
-app.include_router(whatsapp.router, prefix=f"{settings.API_V1_STR}/whatsapp", tags=["WhatsApp"])
-app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin"])
-app.include_router(external.router, prefix=f"{settings.API_V1_STR}", tags=["External"])
+# Include routers
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(farms.router, prefix="/api/v1/farms", tags=["farms"])
+app.include_router(crops.router, prefix="/api/v1/crops", tags=["crops"])
+app.include_router(marketplace.router, prefix="/api/v1/marketplace", tags=["marketplace"])
+app.include_router(market.router, prefix="/api/v1/market", tags=["market"])
 
-@app.get("/", tags=["Root"])
+@app.get("/")
 async def root():
-    return {"message": "Welcome to Ecofy API. Visit /docs for API documentation."}
+    return {"message": "EcoFy API is running!"}
 
-if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True) 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "EcoFy API is operational"} 
